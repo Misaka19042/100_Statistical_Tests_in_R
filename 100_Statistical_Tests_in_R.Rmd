@@ -1,0 +1,1661 @@
+---
+title: "100_Statistical_Tests_in_R"
+output:
+  html_notebook:
+    df_print: paged
+    toc: true
+  html_document:
+    toc: true
+    df_print: paged
+bibliography: references.bib
+editor_options:
+  chunk_output_type: inline
+---
+
+# 100 Statistical Tests in R Notebook
+
+This is the R Notebook for the Book *100 Statistical Tests in R* from [@lewis100StatisticalTests2013].
+
+In order to better illustrate the statistical tests through real-world applications, this notebook will use the built-in R datasets to cover all test types. Run the following codes to ensure all packages and datasets are prepared.
+
+```{r R package preparation, message=FALSE, warning=FALSE}
+library(psych)
+# Load core datasets
+data(iris)
+data(mtcars)
+data(airquality)
+data(sleep)
+data(UCBAdmissions)
+data(faithful)
+data(AirPassengers)
+
+# For survival analysis
+library(lattice)
+library(survival)
+data(lung)
+
+# For circular statistics
+library(circular)
+data(wind)
+
+# For visualisation
+library(ggplot2)
+library(tidyverse)
+```
+
+### Test 1 Pearson's product moment correlation coefficient T-test
+
+To assess the null hypothesis of zero correlation between two variables. When to use this test?
+
+-   Interval or ratio scale
+
+-   No need for same scale
+
+-   A paired sample with approximately normally distributed
+
+-   Joint distribution is bivariate normal
+
+-   Linear relationships
+
+In this test, we will use iris dataset to compare and illustrate the relationship between lengths of sepals and petals.
+
+```{r Iris Dataset, message=FALSE, warning=FALSE}
+str(iris)
+summary(iris)
+summary(iris$Sepal.Length)
+summary(iris$Petal.Length)
+```
+
+```{r message=FALSE, warning=FALSE}
+cor.test(iris$Sepal.Length,iris$Petal.Length, method = "pearson", alterantive = "two.sided", conf.level = 0.95)
+```
+
+The correlation between x (length of sepals) and y (length of petal) is 0.872. The p-value is smaller than 0.05, we reject the null hypothesis of zero correlation. 95% confidence interval is reported betwewn [0.827,0.906], which does not cross zero.
+
+```{r}
+plot(iris$Sepal.Length,iris$Petal.Length)
+
+cor_test_iris_Sepal_Petal_length <- ggplot(data = iris, aes(x=Sepal.Length, y=Petal.Length)) + 
+  geom_point()
+
+cor_test_iris_Sepal_Petal_length
+```
+
+### Test 2 Spearman Rank Correlation Test
+
+When to use this test?
+
+-   To assess the null hypothesis of zero correlation between two variables.
+
+-   Ordinal or ranked data
+
+-   Data is continuous and unreasonable to assume the variables are normally distributed
+
+-   Linear relationship
+
+In this test, we will continue to use iris dataset to compare and illustrate the relationship between lengths of sepals and petals.
+
+```{r message=FALSE, warning=FALSE}
+cor.test(iris$Sepal.Length,iris$Petal.Length, method = "spearman", alternative = "two.sided")
+```
+
+The correlation between x (length of sepals) and y (length of petal) is 0.882. The p-value is smaller than 0.05, we reject the null hypothesis of zero correlation. In the spearman test, there is no confidence interval normally. Spearman correlation uses rank-based calculations rather than the raw data values, making the sampling distribution more complex for computing confidence intervals using standard parametrix methods.
+
+### Test 3 Kendall's Tau Correlation Coefficient Test
+
+When to use this test?
+
+-   a paired random sample of ordinal or ranked data
+
+-   data is continuous and it is unreasonable to the variables are normally distributed
+
+-   linear relationship
+
+We will use a new dataset mtcars to illustrate the Tau correlation coefficient test:
+
+|       |      |                                          |
+|-------|------|------------------------------------------|
+| [, 1] | mpg  | Miles/(US) gallon                        |
+| [, 2] | cyl  | Number of cylinders                      |
+| [, 3] | disp | Displacement (cu.in.)                    |
+| [, 4] | hp   | Gross horsepower                         |
+| [, 5] | drat | Rear axle ratio                          |
+| [, 6] | wt   | Weight (1000 lbs)                        |
+| [, 7] | qsec | 1/4 mile time                            |
+| [, 8] | vs   | Engine (0 = V-shaped, 1 = straight)      |
+| [, 9] | am   | Transmission (0 = automatic, 1 = manual) |
+| [,10] | gear | Number of forward gears                  |
+
+```{r message=FALSE, warning=FALSE}
+str(mtcars)
+summary(mtcars)
+```
+
+```{r message=FALSE, warning=FALSE}
+cor.test(mtcars$hp,mtcars$wt, method="kendal", alternative = "two.sided")
+```
+
+The correlation between x (hp) and y (wt) is 0.611. The p-value is significant smaller than the critical value 0.05. Therefore, we reject the null hypothesis.
+
+### Test 4 Z-Test of the Difference Between Independent Correlations
+
+When to use this test?
+
+-   correlation coefficients calculated from independent samples
+
+-   data are assumed to be bivariate normal
+
+-   sample size may be different
+
+Z-test is less common than Pearson or Spearman correlation. It actually examines whether the correlation coefficients from two or more samples with different sample size is correlated or not.
+
+In this test, we will use iris dataset as the example. We will first calculate the correlation coefficients of Sepal length and Petal length from different species. After that, we will examine the Z-test between these correlation coefficients. We also need 'psych' package to use paried.r function. This function require six parameters: correlation coefficients xy, correlation coeefficients xz, correlaiton yz = NULL, number in first group, number in second group, twotailed
+
+```{r}
+cor_setosa <- cor(iris$Sepal.Length[iris$Species == "setosa"], iris$Petal.Length[iris$Species == "setosa"], method = "pearson")
+cor_versicolor <- cor(iris$Sepal.Width[iris$Species == "versicolor"], iris$Petal.Width[iris$Species == "versicolor"], method = "pearson")
+n_setosa <- sum(iris$Species == "setosa")
+n_versicolor <- sum(iris$Species == "versicolor")
+```
+
+Now we will use paired.r() to calculate the Z-test.
+
+```{r}
+z_test_cor_setosa_versicolor <- paired.r(cor_setosa, cor_versicolor, NULL, n_setosa, n_versicolor, twotailed=TRUE)
+z_test_cor_setosa_versicolor$test
+z_test_cor_setosa_versicolor$z
+z_test_cor_setosa_versicolor$p
+```
+
+The p-value is less than the critical value 0.05. Therefore we can reject the null hypothesis.
+
+### Test 5 Difference Between Two Overlapping Correlation Coefficients
+
+When to use this test?
+
+-   Compare the null hypothesis of zero correlation between one pair of variables and another pair of variables shared with an overlapping variable
+
+-   aim to select the better indicator of two available predictors (x and y) for a dependent variable z
+
+-   data are assumed to be normally distributed
+
+-   referred to as Steiger's t-test, Meng's t-test, Rosenthal & Rubin's t-test or Williams test
+
+We will use mtcars to evaluate the relationships between the correlation of wt (weights) and mpg (miles per gallon) and the correlation of hp (horsepower) and mpg and figure out whether wt or hp is a better indicator of mpg.
+
+We will need compOverlapCorr and psych packages for this test.
+
+```{r}
+library(compOverlapCorr)
+library(psych)
+```
+
+```{r}
+cor_mpg_wt <- cor(mtcars$mpg,mtcars$wt, method = "pearson")
+cor_mpg_hp <- cor(mtcars$mpg, mtcars$hp, method = "pearson")
+cor_hp_wt <- cor(mtcars$hp, mtcars$wt, method = "pearson")
+compOverlapCorr(length(mtcars$mpg), cor_mpg_wt, cor_mpg_hp, cor_hp_wt)
+```
+
+The first number is the result of t-test and the second number is p-value. The p-value is greater than the critical value 0.05. Therefore, we can not reject the null hypothesis.
+
+We can also use psych package to calculate this correlation.
+
+```{r}
+paired.r(cor_mpg_wt, cor_mpg_hp, cor_hp_wt, length(mtcars$mpg), twotailed = TRUE)
+```
+
+We can see the same results from both two packages. As the package {compOverlapCorr} is no longer maintained, we should use {psych} to measure this test.
+
+### Test 6 Difference Between Two Non-Overlapping Dependent Correlation Coefficients
+
+Question to the test addresses:
+
+**Is the correlation between two variables (A and B) significantly different from the correlation between two other variables (C and D), when all four variables were measured in the same group.**
+
+When to use this test?
+
+-   To assess the difference between one pair of variables and a second non-overlapping pair of variables.
+
+-   Non-overlapping could be related items in different times
+
+-   Data are assumed to be normally distributed
+
+Usually, this method aims to discuss the difference in correlation between two variables in two different times for serial analysis. Here, we will discuss the basic mode of this test, two independent sets of variables in the dataset mtcars.
+
+For the cars in this dataset, is the relationship between engine power (hp and disp) significantly different with the relationship between performance (mpg and wt)
+
+```{r message=FALSE, warning=FALSE}
+library("psych")
+```
+
+```{r message=FALSE, warning=FALSE}
+cor_hp_disp <- cor(mtcars$hp, mtcars$disp, method = "pearson")
+cor_mpg_wt <- cor(mtcars$mpg, mtcars$wt, method ="pearson")
+#we also need the cross relationships between these variables
+
+cor_hp_wt <- cor(mtcars$hp, mtcars$wt, method = "pearson")
+cor_mpg_disp <- cor(mtcars$mpg, mtcars$disp, method = "pearson")
+cor_mpg_hp <- cor(mtcars$mpg, mtcars$hp, method = "pearson")
+cor_disp_wt <- cor(mtcars$disp, mtcars$wt, method = "pearson")
+r.test(length(mtcars$mpg), r12 = cor_hp_wt,r34 =  cor_mpg_wt,r23 = cor_mpg_disp, r13 = cor_hp_wt, r14 = cor_hp_wt, r24 = cor_mpg_disp, twotailed = TRUE)
+```
+
+We can see the p-value is 0, smaller than the critical value 0.05. Therefore, we can reject the null hypothesis. The correlation between engine powers and correlation between power performance are different.
+
+### Test 7 Bartlett's Test of Sphericity
+
+Question to the test addresses:
+
+**Are these variables essentially independent of each other?**
+
+When to use this test?
+
+-   check the correlation matrix is different from identity matrix
+
+-   identity matrix means all variables in this matrix are uncorrelated
+
+-   to check whether data is suitable for factor analysis (FA)
+
+For researcher, if we want to conduct factor analysis for our variables, it is important that we should reject the null hypothesis of Bartlett's test that there is no difference between our variable matrix and identity matrix. Only when variables are correlated with each other, we can continue to do factor analysis.
+
+For this test, we will use iris dataset to test the variable matrix among `Sepal.Length`, `Sepal.Width`, `Petal.Length`, `Petal.Width`.
+
+```{r message=FALSE, warning=FALSE}
+library("psych")
+```
+
+```{r message=FALSE, warning=FALSE}
+matrix_data <- iris[, 1:4]
+cortest.bartlett(matrix_data)
+```
+
+According to the result, we can find the p-value is smaller than the critical value 0.05. Therefore, we should reject the null hypothesis that our matrix is the identity matrix. We can argue that there are internal correlations between our matrix among `Sepal.Length`, `Sepal,Width`, `Petal.Length`, and `Petal.Width`.
+
+### Test 8 The Jennrich Test of the Equality of Two Matrices
+
+Question to the test addresses:
+
+**Is the fundamental pattern of correlations at A the same as the pattern at B?**
+
+To use this test:
+
+-   Two independent samples or subsamples
+
+-   The same set of variables measured for both groups
+
+-   The data are assumed to be normally distributed
+
+In this test, we will use the `EuStockMarkets` dataset, which is a built-in dataset in R, measuring the daily closing prices for 4 major EU stock indices from 1991-1998.
+
+We will examine the correlation pattern between the DAX, SMI, CAC, and FTSE indices different in the first half of the time period and the second half of the time period.
+
+```{r message=FALSE, warning=FALSE}
+library("psych")
+sample1 <- EuStockMarkets[1:900, ]
+sample2 <- EuStockMarkets[961:1860, ]
+```
+
+```{r message=FALSE, warning=FALSE}
+cortest.jennrich(sample1,sample2)
+```
+
+According to the result, we can find the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that the correlation patterns of these two samples are statistically the same. The overall pattern of correlation between the major EU stock indices did not significantly change between the two time periods.
+
+### Test 9 The Granger Causality Test
+
+Question to the test addresses:
+
+**Is one time series useful in forecasting another time series?**
+
+To use this test:
+
+-   at least two time series data
+
+-   stationary data: all properties of data are constant over time such as mean, variance and autocorrelation
+
+-   data are assumed to be ordered chronologically
+
+In this test, we will continue to use the time series data `EuStockMarters` with the `diff()` function to create a suitable dataset for this analysis. We will test these relationships:
+
+-   Dose DAX Granger-cause CAC?
+
+-   Does DAX Granger-cause FTSE?
+
+-   Does SMI Granger-cause CAC?
+
+-   Does SMI Granger-cause FTSE?
+
+```{r Data Preparation, message=FALSE, warning=FALSE}
+data("EuStockMarkets")
+dax_diff <- diff(EuStockMarkets[,"DAX"])
+smi_diff <- diff(EuStockMarkets[,"SMI"])
+cac_diff <- diff(EuStockMarkets[,"CAC"])
+ftse_diff <- diff(EuStockMarkets[,"FTSE"])
+```
+
+```{r granger test 1, message=FALSE, warning=FALSE}
+library(lmtest)
+grangertest(cac_diff ~ dax_diff, order = 3)
+```
+
+According to the result, we can find that the p-value is larger than the critical value 0.05.Therefore, we can not reject the null hypothesis that DAX does not Granger-cause CAC. Similarly, we can continue to finish the rest of tests
+
+```{r granger test 2, message=FALSE, warning=FALSE}
+grangertest(ftse_diff ~ dax_diff, order = 3)
+grangertest(cac_diff ~ smi_diff, order = 3)
+grangertest(ftse_diff ~ smi_diff, order = 3)
+```
+
+According to the test, we can see that the latter two p-values are significant smaller than the critical value 0.05. Therefore, we can reject the null hypothesises. SMI Granger-causes the FTSE and CAC.
+
+We can also visualise these results to "see" the relationships. We will use ggplot 2 and zoo packages.
+
+```{r granger test visualisation, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(zoo)
+
+plot_data <- data.frame(
+  Date = 1:length(dax_diff),
+  SMI = as.numeric(smi_diff),
+  CAC = as.numeric(cac_diff),
+  FTSE = as.numeric(ftse_diff)
+)
+
+ggplot(plot_data, aes(x=Date)) +
+  geom_line(aes(y=SMI, color = "SMI")) +
+  geom_line(aes(y=CAC, color="CAC")) +
+  labs(title = "Daily Changes in SMI and CAC", y = "Changes in Price", x="Changes in Day") +
+  theme_minimal()
+
+ggplot(plot_data, aes(x=Date)) +
+  geom_line(aes(y=SMI, color = "SMI")) +
+  geom_line(aes(y=FTSE, color="FTSE")) +
+  labs(title = "Daily Changes in SMI and FTSE", y = "Changes in Price", x="Changes in Day") +
+  theme_minimal()
+```
+
+### Test 10 Durbin-Watson Autocorrelation Test
+
+Question to the test addresses:
+
+**Is there serial correlation in the sample?**
+
+To use this test:
+
+-   whether residuals (error terms) from a regression model are independent
+
+-   residuals are stationary and normally distribution with zero mean
+
+If residuals are not independent, the model will have incorrect standard errors, misleading p-values and false positives. The error from one observation provides information about the error in the next observation, which violates the assumption of linear regression.
+
+For this test, we will use `cars` to build a simple linear regression model, and test the relationship between `dist ~ speed`.
+
+```{r Durbin-Watson Test, message=FALSE, warning=FALSE}
+data("cars")
+
+car_model <- lm(dist ~ speed, data = cars)
+```
+
+```{r Durbin-Watson Test 1, message=FALSE, warning=FALSE}
+library("car")
+durbinWatsonTest(car_model)
+```
+
+According to the result, we can see that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that there is no autocorrelations in this model.
+
+To visualise the residuals, we can plot each residual against the one that came before it (the lagged value). If there is no autocorrelation, we should see the random dot cloud with no observable pattern.
+
+```{r Durbin-Watson visualisation, message=FALSE, warning=FALSE}
+res <- residuals(car_model)
+
+residual_data <- data_frame(
+  Residuals = res[-1],
+  Lagged_Residuals = res[-length(res)]
+)
+
+ggplot(residual_data, aes(x = Lagged_Residuals, y= Residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  labs(title = "Plot of residuals and lagged residuals", x = "lagged residuals", y = "residuals")
+```
+
+### Test 11 Breusch-Godfrey Autocorrelation Test
+
+Question to the test addresses:
+
+**Is there serial correlation in the sample?**
+
+To use this test:
+
+-   included lagged values in the model
+
+-   residuals are assumed to be stationary and normally distribution with zero mean
+
+-   powerful and general than Durbin-Watson Autocorrelation test
+
+This test is used when there is lagged values of dependent variables in the model, which can not use the Durbin-Watson test. For example, the growth of population in one city or the stock prices in the market. We will use `EuStockMarkets` to examine this test. We will examine the daily changes of DAX.
+
+```{r BG data prepration, message=FALSE, warning=FALSE}
+library(lmtest)
+dax_df <- data.frame(DAX_change = as.numeric(dax_diff))
+
+dax_df <- dax_df %>%
+  mutate(DAX_change_lag1 = lag(DAX_change, 1))
+
+dynamic_model <- lm(DAX_change ~ DAX_change_lag1, data = dax_df)
+```
+
+```{r BG test 1, message=FALSE, warning=FALSE}
+bgtest(dynamic_model, order = 3)
+```
+
+According to this result, the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that there is no lagged value in the dependent variables.
+
+## Test 12 T-test
+
+### Test 12 One-Sample t-test For a Hypothesised Mean
+
+Question to the test addresses:
+
+**Is the mean of a sample significantly different from a hypothesised mean?**
+
+To use this test:
+
+-   data is assumed to be normally distributed
+
+-   the population standard deviation is unknown
+
+For this test, we will use the built-in dataset `sleep`.
+
+```{r One sample t-test, message=FALSE, warning=FALSE}
+drug1_data <- sleep %>% 
+  filter(group == 1)
+
+t.test(drug1_data$extra, mu = 0, alternative = "two.sided")
+```
+
+According to the result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that the drug has no effect on sleep average time.
+
+### Test 13: One-sample Wilcoxon Signed-Rank Test
+
+Question to the test addresses:
+
+**Is the median of a sample significantly different from a hypothesised value?**
+
+To use this test:
+
+-   sample data are assumed not to be normally distributed
+
+-   a nonparametric test
+
+-   alternative method to the one-sample t-test
+
+This test is closely related to the test 12. In order to practice this test, we first examine the distribution of sample dataset that we created.
+
+```{r 13 distirbution , message=FALSE, warning=FALSE}
+shapiro.test(drug1_data$extra)
+```
+
+According to the result, the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that the sample data is normally distributed. Even though one-sample t-test is better, we can still use the Wilcoxon test here.
+
+```{r 13 test, message=FALSE, warning=FALSE}
+wilcox.test(drug1_data$extra, mu = 0, alternative = "two.sided")
+```
+
+According to the result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null-hypothesis. We get the same conclusions from t-test and Wilcoxon test.
+
+### Test 14 Sign Test for a Hypothesised Median
+
+Question to the test addresses:
+
+**Is the median of a sample significantly different from a hypothesised median?**
+
+To use this test:
+
+-   nonparametric test
+
+-   even simpler requirements than Wilcoxon test
+
+-   best for description data like better, same, worse
+
+-   less powerful than Wilcoxon test and t-test
+
+We will continue to use the drug data as sample to demonstrate the coding processes. We will need package `BSDA` to calculate this test.
+
+```{r test 14, message=FALSE, warning=FALSE}
+library(BSDA)
+
+SIGN.test(drug1_data$extra, mu=0, alternative = "two.sided")
+```
+
+According to the results, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis. Compared to t-test and Wilcoxon test, we can find that the simpler conditions a test requires, the larger p-value we can get.
+
+### Test 15 Two-sample t-test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of two samples significantly different from zero?**
+
+To use this test:
+
+-   compare means of two independent groups
+
+-   each group is assumed to be normally distribution
+
+-   variances of two groups are equal
+
+In this test, we will use the `chickwts` dataset which contains the weights of 71 six-week-old chicks fed by different types of feed. Let's test if there is a significant difference in the final weight of chicks fed by "**casein**" and "**soybean**"
+
+```{r test 15 data preparation, message=FALSE, warning=FALSE}
+data(chickwts)
+head(chickwts)
+
+chicks_compare <- chickwts %>% 
+  filter(feed %in% c("casein","soybean"))
+```
+
+```{r test 15, message=FALSE, warning=FALSE}
+t.test(weight ~ feed, data = chicks_compare, var.equal = TRUE)
+```
+
+According to this result, we can find that the p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no difference between the weights from soybean group of chicks and casein group of chicks.
+
+### Test 16 Pairwise t-test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of three or more samples significantly different from zero?**
+
+To use this test:
+
+-   more than two groups of data
+
+-   all data are assumed to be normally distributed
+
+We will continue use the `chickwts` dataset. Now we will compare all different types of feed at the same time. Therefore, we need to use the adjust p-value for more accurate results. We will adjust the `pool.s`d to FALSE for the comparison for test 17. However, we need to remember we do not need to set `pool.sd` to FALSE in actual uses.
+
+```{r test 16, message=FALSE, warning=FALSE}
+pairwise.t.test(chickwts$weight, chickwts$feed, p.adjust.method = "holm", pool.sd = FALSE)
+```
+
+According to the results, we can find that some p-values are varied in the table. For example, we can reject the null hypotheses of casein and horsebeam, and casein and linseed but we can not reject the null hypotheses of casein and meatmeal, and casein and sunflower.
+
+The reason why the p-value of the pair "casein and soybean" is a bit larger than the example in test 15 is that p-value adjustment for multiple comparisons. The "holm" method slightly increases the p-values to reduce the chance of making Type I error.
+
+### Test 17 Pairwise t-test with Common Variance
+
+Question to the test addresses:
+
+**Is the difference between the mean of three or more samples significantly different from zero?**
+
+To use this test:
+
+-   variances are equal across all test groups
+
+-   powerful than test 16 if the assumption is true
+
+The only change for this test is that we set the `pool.sd` to TRUE.
+
+```{r test 17, message=FALSE, warning=FALSE}
+pairwise.t.test(chickwts$weight, chickwts$feed, p.adjust.method = "holm", pool.sd = TRUE)
+```
+
+According to the results, we almost get the same answers from test 15 and test 16. However, some changes are observable. For example, the p-value between casein and soybean is slightly larger than the p-value in test 15 but smaller than the p-value in test 16 when `pool.sd` is set to FALSE.
+
+The reason why three p-values of the pair "casein and soybean are different is that different kinds of variances are used in the calculation. For test 15, we only calculate the deviation between "casein" and "soybean". In test 17, we actually test the deviations across six groups together, which contains more data. For the test 16, we calculate the test through a separate comparison for each pair without assuming equal variances. This is actually the Welch t-test, which will be discussed in test 18.
+
+### Test 18 Welch t-test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of two sample groups significantly different from zero?**
+
+To use this test:
+
+-   not assumed to be equal variances
+
+The code for this test is as same as what we did in 16 but only with two groups of feeds.
+
+```{r test 18, message=FALSE, warning=FALSE}
+feeds_to_compare <- chickwts %>%
+  filter(feed %in% c("casein", "soybean"))
+
+t.test(weight ~ feed, data = feeds_to_compare, var.equal = FALSE)
+```
+
+According to the results, we can find that p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no difference in the final weights of chicks between two types of feeds.
+
+### Test 19 Paired t-test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of two related samples significantly different from zero?**
+
+To use this test:
+
+-   measure same subject twice, before and after
+
+-   subjects are assumed to be drawn from a population with a normal distribution
+
+We will use the `sleep` dataset to examine the drug effects on sleep duration.
+
+```{r test 19, message=FALSE, warning=FALSE}
+drug1_sleep <- sleep$extra[sleep$group == 1]
+
+drug2_sleep <- sleep$extra[sleep$group == 2]
+
+t.test(drug1_sleep, drug2_sleep, paried = TRUE, var.equal = TRUE)
+```
+
+According to the results, we find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that there is no difference on the mean effect between drug 1 and drug 2 on the same person.
+
+### Test 20 Matched Pairs Wilcoxon Test
+
+Question to the test addresses:
+
+**Is the difference between the mean of two related samples significantly different from zero?**
+
+To use this test:
+
+-   data are paired
+
+-   can not assume the differences are normally distributed
+
+-   on ranks of differences
+
+We will still use the `sleep` dataset in this test.
+
+```{r test 20, message=FALSE, warning=FALSE}
+wilcox.test(drug1_sleep, drug2_sleep, paired = TRUE)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no difference on the drug effects between drug 1 and drug 2 on the same person.
+
+Compared to the result in Test 19, we get the opposite conclusions. Test 19 indicates that we can not reject the null hypothesis but Test 20 indicates that we can do it. The statistical reason is that the Wilcoxon test is often **more powerful** than the t-test when the data is not perfectly normally distributed or when there are outliers. The Wilcoxon test works with the ranks of the data, which makes it less sensitive to one or two unusually large or small values. In this `sleep` dataset, the differences might not be perfectly normal, giving the Wilcoxon test an advantage in detecting a real effect.
+
+### Test 21 Pairwise Paired t-test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of two samples significantly different from zero, when tested across multiple pairs?**
+
+To use this test:
+
+-   multiple samples
+
+-   matched pairs experimental design
+
+-   subjects are assumed to be normally distributed
+
+We will use the built-in dataset `iris` to examine the difference in the length of sepal. The `iris` dataset contains measurements for 50 flowers from 3 different species. Let's pretend for this exercise that these aren't three separate species, but are instead measurements of the **same 50 flowers** at three different points in time (Time 1, Time 2, Time 3). This lets us practice a paired analysis.
+
+```{r test 21, message=FALSE, warning=FALSE}
+pairwise.t.test(iris$Sepal.Length, iris$Species, paired = TRUE, p.adjust.method = "holm")
+```
+
+According to the result, we can find that the p-values across all pairs are smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no significant difference in the length of sepal between any of the three time points.
+
+### Test 22 Pairwise Wilcox Test for the Difference in Sample Means
+
+Question to the test addresses:
+
+**Is the difference between the mean of two samples significantly different from zero, when tested across multiple pairs?**
+
+To use this test:
+
+-   same with conditions in test 21
+
+-   can not assume to be normally distributed
+
+We keep our assumption that we set in test 21.
+
+```{r test 22, message=FALSE, warning=FALSE}
+pairwise.wilcox.test(iris$Sepal.Length, iris$Species, paired = TRUE, p.adjust.method = "holm")
+```
+
+According to this result, we can get the same conclusion based on the p-value.
+
+### Test 23 Two-sample Dependent Sign Rank Test for Difference in Medians
+
+Question to the test addresses:
+
+**Is the difference between the median of two related samples significantly from zero?**
+
+To use this test:
+
+-   each subject is measured twice, before and after
+
+-   a matched pairs experimental design
+
+-   continuous distribution
+
+We will use the `sleep` dataset. We will also need the function `SIGN.test()` from `BSDA` package.
+
+```{r test 23, message=FALSE, warning=FALSE}
+drug1_sleep <- sleep$extra[sleep$group == 1]
+drug2_sleep <- sleep$extra[sleep$group == 2]
+
+SIGN.test(drug1_sleep, drug2_sleep)
+```
+
+According to the result, we can find the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis.
+
+### Test 24 Wilcoxon Rank Sum Test for the Difference in Medians
+
+Question to the test addresses:
+
+**Is the difference between the median of two samples significantly different from zero?**
+
+To use this test:
+
+-   Data are not assumed to be normally distributed
+
+-   Two independent groups
+
+-   works with rank of the data
+
+We will use the `chickwts` one last time to compare it with the t-tests.
+
+```{r test 24, message=FALSE, warning=FALSE}
+feeds_to_compare <- chickwts %>% 
+  filter(feed %in% c("casein", "soybean"))
+
+wilcox.test(weight ~ feed, data = feeds_to_compare)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis.
+
+## Test 25-31 A Deep Dive into Randomness
+
+### Test 25 Wald-Wolfowitz Runs Test for Dichotomous Data
+
+This test is used to check for randomness in a sequence of **binary events**. Binary data means that data with only two categories, like Yes/No, or 0/1.
+
+This test detects the **runs** in a sequence of data. A **run** means the uninterrupted sequence of the same event. For example, in the sequence `1, 1, 1, 0, 0, 1, 0, 0, 0`, there are 4 runs (`111`, `00`, `1`, `000`). If there are too few or too many runs, it suggests the sequence isn't random.
+
+We will use the `runs.test()` from `tseries` package.
+
+```{r Test 25, message=FALSE, warning=FALSE}
+if (!require("tseries")) {
+  install.packages("tseries")
+  library(tseries)
+}
+
+binary_sequence <- factor(c(1,1,0,0,1,0,1,1,1,0,0,0))
+
+runs.test(binary_sequence)
+```
+
+According to this result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that our binary sequence is random.
+
+### Test 26 Wald-Wolfowitz Runs Test for Continuous Data
+
+This test extends the test 25 into continuous data. Question to this test addresses:
+
+**Is the sequence of observations in a sample radomly distributed?**
+
+It works for continuous data.
+
+We will use the `runs.test()` from the `lawstat` package for this.
+
+```{r test 26, message=FALSE, warning=FALSE}
+if (!require("lawstat")) {
+  install.packages("lawstat")
+  library(lawstat)
+}
+
+continuous_sequence <- c(1.8, 2.3, 1.5, 2.9, 1.1, 3.5, 0.9)
+
+runs.test(continuous_sequence)
+```
+
+According to this result, we can find that the p-value is smaller than critical value 0.05. Therefore, we can reject the null hypothesis that our continuous sequence is random.
+
+### Test 27 Bartels Test of Randomness in a Sample
+
+Question to the test addresses:
+
+**Is the sequence of observations in a sample randomly distributed?**
+
+Bartels test is a powerful alterantive to the Wald-Wolfowitz runs test for continuous data. It's based on the ranks of data rather than just their position relative to the median.
+
+The function is `bartels.test()` from the same `lawstat` package. We will use the same continuous in the test 26 in this test.
+
+```{r test 27, message=FALSE, warning=FALSE}
+bartels.test(continuous_sequence)
+```
+
+According to the result, we can find that p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that our continuous sequence is random.
+
+The Wald-Wolfowitz test gave a p-value of 0.006 (significant), while the Bartels test gave 0.098 (not significant). While the Barlets test is often more powerful, it's not a universal rule. Different tests are sensitive to different kinds of non-random patterns. In our example, the very short sequence, they way the two tests calculate their statistics led them to different conclusions.
+
+### Test 28 & 29 Ljung-Box and Box-Pierce Tests
+
+Both the **Ljung-Box** and **Box-Pierce** tests check for **autocorrelation** in a time series.
+
+Question to these tests address:
+
+**Is the sequence of observations in a sample randomly distributed?**
+
+These tests check if the autocorrelations between the series and its past values are all zero. The **Ljung-Box** test is a refinement of the **Box-Pierce** test and is generally preferred for small sample sizes.
+
+We will use the built-in `Nile` dataset contains measurements of the flow of the river Nile from 1871-1970.
+
+```{r test 28 29 data, message=FALSE, warning=FALSE}
+plot(Nile)
+```
+
+```{r test 28 29, message=FALSE, warning=FALSE}
+Box.test(Nile, lag = 10, type = "Ljung-Box")
+Box.test(Nile, lag =10, type = "Box-Pierce")
+```
+
+According to these results, we can find that the p-values are both smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that the measurements of the river Nile is random.
+
+### Test 30 BDS test
+
+Question to the test addresses:
+
+**Is a time series independent and identically distributed?**
+
+To use this test:
+
+-   detect complex and non-linear patterns
+
+-   single time series
+
+We will continue to use the `Nile` dataset and check if there is any non-random or non-linear patterns.
+
+```{r test 30, message=FALSE, warning=FALSE}
+bds.test(Nile)
+```
+
+According to the result, we can find that all p-values are smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that the Nile dataset is independent and identically distributed. It suggests the patterns in the Nile dataset are more complex and maybe non-linear.
+
+### Test 31 Wald-Wolfowitz Two-Sample Run test
+
+Question to the test addresses:
+
+**Do two independent samples come from populations having the same distribution?**
+
+To use this test:
+
+-   combining two samples together
+
+-   ranking with the run test
+
+We will use the Nile dataset to see whether the first 50 years are different from the last 50 years.
+
+```{r test 31 data, message=FALSE, warning=FALSE}
+nile_first_50 <- Nile[1:50]
+nile_last_50 <- Nile[51:100]
+plot(nile_first_50)
+plot(nile_last_50)
+```
+
+```{r test 31 , message=FALSE, warning=FALSE}
+combined_nile <- c(nile_first_50,nile_last_50)
+group_labels <- factor(c(rep("first", 50), rep("last", 50)))
+
+sorted_groups <- group_labels[order(combined_nile)]
+tseries::runs.test(sorted_groups)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no difference between the first 50 years and last 50 years. The test suggests that the two samples are not randomly mixed, which means the distribution of the Nile's flow in the first 50 years is likely different from its distribution in the last 50 years.
+
+## Variances and Dispersion
+
+### Test 32 Mood's Test
+
+Question to the test addresses:
+
+**Do two independent samples come from the same distribution?**
+
+To use this test:
+
+-   two samples are assumed to have same medians and shape
+
+We will compare the spread of weights for chicks fed **"casein"** versus those fed **"sunflower"**. Visually, their average weights look similar, but is the consistency of the weight gain the same?
+
+we can use the `mood.test()` function.
+
+```{r test 32 data preparation, message=FALSE, warning=FALSE}
+casein_v_sunflower <- chickwts %>%
+  filter(feed %in% c("casein", "sunflower"))
+
+ggplot(casein_v_sunflower, aes(x = feed, y = weight, fill = feed)) +
+  geom_boxplot() +
+  labs(title = "Comparison of Chick Weights by Feed Type",
+       x = "Feed Type",
+       y = "Weight (grams)") +
+  theme_minimal()
+```
+
+```{r test 32, message=FALSE, warning=FALSE}
+mood.test(weight ~ feed, data = casein_v_sunflower)
+```
+
+According to the result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that these two independent samples come from the same distribution.
+
+### Test 33 F-test of Equality of Variances
+
+Question to the test addresses:
+
+**Are the variances of two samples equal?**
+
+To use this test:
+
+-   highly sensitive to the data being normally distributed
+
+-   parametric test, very powerful
+
+We will use the F-test on the same two groups: "casein" vs. "sunflower". This will let us compare the result from a parametric test (F-test) to the nonparametric one (Mood's test). The function for F-test is `var.test()`.
+
+```{r test 33, message=FALSE, warning=FALSE}
+casein_v_sunflower <- chickwts %>% 
+  filter(feed %in% c("casein", "sunflower"))
+
+var.test(weight ~ feed, data = casein_v_sunflower)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the variances of casein group and sunflower group are equal.
+
+### Test 34 Pitman-Morgan Test
+
+Question to the test addresses:
+
+**Are the variances of two correlated sample equal?**
+
+To use this test:
+
+-   paired data
+
+-   testing the correlation between sum and variances
+
+-   highly sensitive to the data being normally distributed
+
+We will use `sleep` dataset again, as it contains paired data (each of the 10 subjects was tested on two different drugs). We can test if the variance in "extra sleep" was different for Drug 1 compared to Drug 2.
+
+The function for this is `pitman.morgan.test.default()` from the `PairedData` package.
+
+```{r test 34, message=FALSE, warning=FALSE}
+if (!require("PairedData")) {
+  install.packages("PairedData")
+  library(PairedData)
+}
+pitman.morgan.test.default(drug1_sleep, drug2_sleep)
+```
+
+According to the result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that the variances from drug 1 and drug 2 are equal.
+
+## Test 35-40 The Homogeneity of Variance Family
+
+All these series of tests aim to answer the same question:
+
+**Do multiple independent samples come from populations with equal variances?**
+
+### Test 35 Ansari-Bradley Test
+
+To use this test:
+
+-   data are assumed to be continuous
+
+-   data are measured at ordinary scale
+
+We will use the full `chickwts` dataset, which has six feed groups, to test if the variance in weight is the same across **all** of them. We'll start with the **Ansari-Bradley Test**.
+
+```{r test 35}
+casein_v_sunflower <- chickwts %>%
+  filter(feed %in% c("casein", "sunflower"))
+
+ansari.test(weight ~ feed, data = casein_v_sunflower)
+```
+
+According to the result, we can find that p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that these two samples have the same variances.
+
+### Test 36 Bartlett Test
+
+To use this test:
+
+-   sensitive to data being normal distribution
+
+We will use `chickwts` dataset to compare variances from all feeds.
+
+```{r test 36, message=FALSE, warning=FALSE}
+bartlett.test(weight ~ feed, data = chickwts)
+```
+
+According to the results, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that variances from all feed are the same.
+
+### Test 37 Fligner-Killeen Test
+
+-   nonparametric test
+
+-   more robust
+
+-   data can be assumed not to be normally distributed
+
+We will compare the results from Fligner-Kileen test and Bartlett test to see anything different.
+
+```{r test 37, message=FALSE, warning=FALSE}
+fligner.test(weight ~ feed, data = chickwts)
+```
+
+According to the results, we get the exact same conclusion with Bartlett test.
+
+### Test 38 Levene's Test of Equality of Variance
+
+To use this test:
+
+-   data are assumed not to be normally distributed
+
+The function `leveneTest()` is in the `car` package, which we've used before. Let's run it on our `chickwts` data to see if our conclusion holds a third time.
+
+```{r test 38, message=FALSE, warning=FALSE}
+if (!require("car")) {
+  install.packages("car")
+  library(car)
+}
+
+leveneTest(weight ~ feed, data = chickwts)
+```
+
+According to the results, we get the same result again.
+
+### Test 39 Cochran's C Test
+
+Question to the test addresses:
+
+**Is single largest variance among a group of samples an outlier?**
+
+To use this test:
+
+-   equal sample size across all groups
+
+-   measure the largest variances as the outliers
+
+We'll use the `InsectSprays` data and the `cochran.test` function from the `outliers` package.
+
+```{r test 39 data preparation, message=FALSE, warning=FALSE}
+if (!require("outliers")) {
+  install.packages("outliers")
+  library(outliers)
+}
+
+summary(InsectSprays)
+```
+
+```{r test 39, message=FALSE, warning=FALSE}
+cochran.test(count ~ spray, data = InsectSprays)
+```
+
+According to the results, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there are no variances as outliers from all groups. The variance of **spray F** is significantly larger than the variances of the other sprays.
+
+### Test 40 Brown-Forsythe Test
+
+-   use medians for test
+
+-   more robust and general-purpose
+
+We will run this test on `InsectSprays` data to see what it says about the overall equality of variances. The function is `levene.test()` from the `lawstat` package, and we specify `location = "median"` to make it a Brown-Forsythe test.
+
+```{r test 40, message=FALSE, warning=FALSE}
+levene.test(InsectSprays$count, InsectSprays$spray, location = "median")
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. We can reject the null hypothesis that the variances across all groups are the same.
+
+### Test 41 Mauchly's Sphericity Test
+
+Question to the test addresses:
+
+**Are the variances of the differences between all possible pairs of groups in a repeated measures analysis of variance equal?**
+
+To use this test:
+
+-   variances of the differences of comparison groups need to be equal
+
+-   repeated measures for ANOVA analysis
+
+We will use `ChickWeight` and `sleep` to continue practice this test.
+
+```{r test 41 sleep, message=FALSE, warning=FALSE}
+sleep_wide <- reshape(sleep, idvar = "ID", timevar = "group", direction = "wide", sep = "_")
+sleep_matrix <- as.matrix(sleep_wide[,c('extra_1', 'extra_2')])
+
+lm_sleep <- lm(sleep_matrix ~ 1)
+mauchly.test(lm_sleep, X = ~1)
+```
+
+```{r test 41 ChickWeight, message=TRUE, warning=FALSE}
+chick_subset <- ChickWeight[ChickWeight$Time %in% c(0,2,4,6),]
+chick_subset <- chick_subset[chick_subset$Chick %in% 1:10,]
+
+chick_wide <- reshape(chick_subset, idvar = "Chick", timevar = "Time", direction = "wide", sep = "_")
+chick_matrix <- as.matrix(chick_wide[,c("weight_0", "weight_2", "weight_4", "weight_6")])
+chick_matrix <- na.omit(chick_matrix)
+
+lm_chick <- lm(chick_matrix ~ 1)
+mauchly.test(lm_chick, X= ~1)
+```
+
+According to the results, we can find that the p-value in practice 1 is 1 and the p-value in practice 2 is 0.4439. Both of them are larger than the critical value 0.05. For the practice 1, there are only two conditions in the test so there is no variances to compare. For the practice 2, we can not reject the null hypothesis that the variances of comparison groups are equal.
+
+### Test 42 Binomial Test
+
+Question to the test addresses:
+
+**Do the proportion on of individuals falling in each category diﬀer from chance? Or does the proportion on of individuals falling into each category differ from some pre-specified probabilities of falling into those categories?**
+
+A simple way to understand this test is that if we flip a coin 30 times and get 25 heads, this test can tell us the exact probability of that happening with a fair coin.
+
+```{r test 42, message=FALSE, warning=FALSE}
+binom.test(x = 25, n = 30, p = 0.5)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that the true probability is 0.5 for this example. The true probabilities are from 0.645 to 0.94.
+
+### Test 43 One-Sample Proportions Test
+
+Question to the test addresses:
+
+**Is the observed proportion from a random experiment equal to some pre-specified probability?**
+
+This test is similar with Binomial test. It is suitable for large sample size. We have 100 people in a survey and 52 of them believe they prefer option A. We can test whether this is significantly from a 50% of market share.
+
+```{r test 43, message=FALSE, warning=FALSE}
+prop.test(x = 52, n = 100, p =0.5)
+```
+
+According to this result, we can find that the p-value is larger than the critical value 0.05. Therefore, we can not reject the null hypothesis that our survey result shows the same proportion of market share.
+
+### Test 44 One-Sample Poisson Test
+
+Question to the test addresses:
+
+**Is the rate parameter of a Poisson distributed sample significantly different from a hypothesized value?**
+
+To use this test:
+
+-   count data
+
+Researchers observed **6 cases** of a particular cancer in a group of relatives, but based on the general population, they only **expected 6.2 cases**. Is the observed number significantly different from the expected number?
+
+```{r test 44, message=FALSE, warning=FALSE}
+poisson.test(x = 6, T = 6.2)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the observed number is significant different from the expected number.
+
+### Test 45 Pairwise Comparison of Proportions Test
+
+Question to the test addresses:
+
+**Is the difference between the pairwise proportions in three or more samples significant?**
+
+To use this test:
+
+-   three or more than three groups
+
+Suppose we have data from six different hospital wards on the proportion of patients who recovered after a treatment.
+
+|      |           |               |
+|------|-----------|---------------|
+| Ward | Recovered | Not Recovered |
+| s1   | 95        | 106           |
+| s2   | 181       | 137           |
+| s3   | 76        | 85            |
+| s4   | 13        | 29            |
+| s5   | 11        | 26            |
+| s6   | 201       | 179           |
+
+```{r test 45, message=FALSE, warning=FALSE}
+recovery_data <- matrix(c(95, 106, 181, 137, 76, 85, 13, 29, 11, 26, 201, 179),
+                      ncol = 2, byrow = TRUE)
+
+
+colnames(recovery_data) <- c("Recovered", "Not Recovered")
+rownames(recovery_data) <- c("s1", "s2", "s3", "s4", "s5", "s6")
+
+pairwise.prop.test(recovery_data)
+```
+
+According to the result, we can find that the p-values between s2 and s4, s2 and s5 are smaller than the critical value. Therefore, we can only reject the null hypothesis between these two groups that s2 and s4, s2 and s5 are significantly different.
+
+### Test 46 Two-Sample Poisson Test
+
+Question to the test addresses:
+
+**Is the rate parameter of a Poisson distributed sample significantly different from another?**
+
+This is the two-sample version of the Poisson test.
+
+To use this test:
+
+-   two independent samples
+
+-   compare the rate of events
+
+We will test two samples:
+
+-   **Sample 1:** Observed 10 events over a "time base" or exposure of 20,000 units.
+
+-   **Sample 2:** Observed 2 events over a "time base" or exposure of 17,877 units.
+
+```{r test 46, message=FALSE, warning=FALSE}
+poisson.test(c(10,2),c(20000,17877))
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that the rate of parameters of these two samples are significantly different.
+
+### Test 47 Multiple Sample Proportions Test
+
+Question to the test addresses:
+
+**Is the difference between the observed proportions from two or more samples significantly different from zero?**
+
+To use this test:
+
+-   two or more independent groups
+
+-   compare the proportions of successes
+
+We will use two groups to practice this test:
+
+-   **Group 1 (Male Faculty):** 18 out of 30 were trained at top-tier schools (18 successes, 30 trials).
+
+-   **Group 2 (Female Faculty):** 17 out of 24 were trained at top-tier schools (17 successes, 24 trials).
+
+```{r test 47, message=FALSE, warning=FALSE}
+prop.test(c(18,17),c(30,24))
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that there is differences between the rate of successes in the two groups.
+
+### Test 48 Chi-Squared Test for Linear Trend
+
+Question to the test addresses:
+
+**Is there a linear trend in the proportions across multiple ordered categories?**
+
+To use this test:
+
+-   three or more ordered groups
+
+-   find a linear trend in the proportions of success
+
+We have three groups with increasing dosage levels.
+
+-   **Group 1 (10mg):** 10 successes out of 50 trials.
+
+-   **Group 2 (20mg):** 17 successes out of 50 trials.
+
+-   **Group 3 (30mg):** 25 successes out of 50 trials.
+
+```{r test 48, message=FALSE, warning=FALSE}
+success <- c(10, 17, 25)
+
+totals <- c(50, 50, 50)
+
+prop.trend.test(success, totals)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no linear trend.
+
+### Test 49 Pearson's Paired Chi-Squared Test
+
+Question to the test addresses:
+
+**Are the paired observations on two variables in a contingency table independent of each other?**
+
+To use this test:
+
+-   two categorical variables
+
+We have a contingency table showing the voting patterns of 100 citizens, categorized by gender and political party.
+
+|        |        |              |
+|--------|--------|--------------|
+| Gender | Labour | Conservative |
+| Male   | 20     | 30           |
+| Female | 30     | 20           |
+
+We want to test if a person's gender is independent of their choice of political party.
+
+```{r test 49, message=FALSE, warning=FALSE}
+voting_data <- as.table(rbind(c(20, 30), c(30, 20)))
+
+dimnames(voting_data) <- list(gender = c("Male", "Female"), party = c("Labour", "Conservative"))
+chisq.test(voting_data, correct = FALSE)
+```
+
+According to the result, we can find that p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that the person's gender is independent of their choice of party.
+
+### Test 50 Fisher's Exact Test
+
+Question to the test addresses:
+
+**Are the paired observations on two variables in a contingency table independent of each other?**
+
+To use this test:
+
+-   small sample size
+
+-   two categorical variables
+
+We have a contingency table showing the voting patterns of 100 citizens, categorized by gender and political party.
+
+|        |        |              |
+|--------|--------|--------------|
+| Gender | Labour | Conservative |
+| Male   | 2      | 3            |
+| Female | 3      | 2            |
+
+We want to test if a person's gender is independent of their choice of political party.
+
+```{r test 50, message=FALSE, warning=FALSE}
+voting_data <- as.table(rbind(c(2, 3), c(3, 2)))
+
+dimnames(voting_data) <- list(gender = c("Male", "Female"), party = c("Labour", "Conservative"))
+fisher.test(voting_data)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis. There is no significantly association between a person's gender and their choice of political party.
+
+### Test 51 Cochran-Mantel-Haenszel Test
+
+Question to the test addresses:
+
+**Is there a relationship between two categorical variables after adjusting for control variables?**
+
+To use this test:
+
+-   More advanced chi-squared test
+
+-   test relationships between two categorical variables and control for a third categorical variable
+
+We will create a treatment example from the book. We want to see if a treatment ("Drug" vs. "Placebo") is associated with a response ("Improved" vs. "No Change"), while controlling for sex ("Male" vs. "Female").
+
+```{r test 51 data preparation, message=FALSE, warning=FALSE}
+treatment_data <- array(
+  c(12,16,7,19,
+    16,11,5,20),
+  dim = c(2,2,2),
+  dimnames = list(
+    Treatment = c("Drug","Placebo"),
+    Response = c("Improved","No Change"),
+    Sex = c("Male","Female")
+  )
+)
+ftable(treatment_data)
+```
+
+```{r test 51, message=FALSE, warning=FALSE}
+mantelhaen.test(treatment_data)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value 0.05. Therefore, we can reject the null hypothesis that there is no relationship between the treatment and response even after controlling for sex.
+
+### Test 52 McNemar's Test
+
+Question to the test addresses:
+
+**Is there a difference between paired proportions?**
+
+To use this test:
+
+-   paired or matched categorical data
+
+-   same subject twice and the outcome is binary (yes/no)
+
+-   suitable for "before and after" test
+
+From the book, we create a table for the diagnostic tests. We are comparing two diagnostic tests for tuberculosis (sputum culture & chest radiography) on the same group of patients.
+
+```{r test 52 data preparation, message=FALSE, warning=FALSE}
+diagnostic_data <- matrix(
+  c(59,4,128,20),
+  nrow = 2,
+  dimnames = list(
+    "Radiography" = c("Positive","Negative"),
+    "Sputum" = c("Positive", "Negative"))
+)
+ftable(diagnostic_data)
+```
+
+```{r test 52, message=FALSE, warning=FALSE}
+mcnemar.test(diagnostic_data)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that two tests have the same proportion of positive results.
+
+### Test 53 Equal Means in a One-way Layout (ANOVA)
+
+Question to the test addresses:
+
+**Do three or more samples come from populations with the same mean?**
+
+To use this test:
+
+-   extension of the independent two-sample t-test [Test 15 Two-sample t-test for the Difference in Sample Means]
+
+-   three or more groups of samples
+
+-   assume data to be normally distributed
+
+-   assume variances across different groups to be equal
+
+We will comeback to the `chickwts` dataset (Let's say "thank you chicks!") and compare the effects of six different feeds.
+
+```{r test 53, message=FALSE, warning=FALSE}
+oneway.test(weight ~ feed, data= chickwts, var.equal = TRUE)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no significant difference in the mean weight of chicks across six different groups.
+
+The ANOVA test tells us that at least one group is different from others, but it doesn't tell us which specific groups are different. To find that out, we would need to perform a follow-up test, like the [Test 17 Pairwise t-test with Common Variance].
+
+### Test 54 Welch-test for more than two samples (Welch's ANOVA)
+
+Question to the test addresses:
+
+**Do your three or more samples come from populations with the same mean?**
+
+To use this test:
+
+-   do not assume equal variances across all groups
+
+-   more robust alternative to the standard ANOVA test
+
+Therefore, we only need to set the `var.euqal = FALSE`.
+
+```{r test 54, message=FALSE, warning=FALSE}
+oneway.test(weight ~ feed, data= chickwts, var.equal = FALSE)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis. Comparing with the result from test 53, we can find that the Welch's ANOVA test has higher F value and larger p value than the standard ANOVA test as it is more robust with fewer constraints.
+
+### Test 55 Kruskal-Wallis Rank Sum Test
+
+Question to the test addresses:
+
+**Do your three or more samples come from populations with the same mean?**
+
+To use this test:
+
+-   nonparametric equivalent of the one-way ANOVA
+
+-   central tendency of three or more independent groups
+
+-   do not assume the normality assumption of ANOVA
+
+-   the extension of the [Test 24 Wilcoxon Rank Sum Test for the Difference in Medians]
+
+```{r test 55, message=FALSE, warning=FALSE}
+kruskal.test(weight ~ feed, data = chickwts)
+```
+
+According to the result, we can find that p-value is smaller than the critical value. Therefore, we can reject the null hypothesis.
+
+Kruskal-Wallis Rank Sum test has even fewer constraints. Therefore, the p-value is larger than the Welch's ANOA.
+
+### Test 56 Friedman's Test
+
+Question to the test addresses:
+
+**Are the distributions from various groups the same across repeated measures?**
+
+To use this test:
+
+-   repeated measures of ANOVA
+
+-   three or more related/paired groups of samples
+
+-   assume data not to be normally distributed
+
+-   extension of [Test 20 Matched Pairs Wilcoxon Test]
+
+Friedman Test in R requires matrix data. Therefore, we will create the sample data based on the book.
+
+```{r test 56 data preparation, message=FALSE, warning=FALSE}
+diet_data <- matrix(c(
+  8, 8, 7,  7, 6, 6,  6, 8, 6,  8, 9, 7,
+  5, 8, 5,  9, 7, 7,  7, 7, 7,  8, 7, 7,
+  8, 6, 8,  7, 6, 6,  7, 8, 6,  9, 9, 6
+), nrow = 12, byrow = TRUE,
+dimnames = list(
+  Subject = 1:12,
+  Diet = c("Healthy Balanced","Low Fat","Low Carb")
+))
+
+ftable(diet_data)
+```
+
+```{r test 56, message=FALSE, warning=FALSE}
+friedman.test(diet_data)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no difference in the perceived energy levels across the three diets.
+
+### Test 57 Quade Test
+
+Question to the test addresses:
+
+**Are the distributions from various groups the same across repeated measures?**
+
+To use this test:
+
+-   related (paired) samples
+
+-   more powerful than the Friedman test
+
+-   small number of groups
+
+```{r test 57, message=FALSE, warning=FALSE}
+quade.test(diet_data)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no difference in the perceived energy levels across the three diets.
+
+## Testing for Normality
+
+### Test 58 D'Agostino Test of Skewness
+
+Question to the test addresses:
+
+**Is the data skewed (symmetric or long tail on one side)?**
+
+To use this test:
+
+-   for normality assumption
+
+-   looking for Skewness (symmetric, long tail)
+
+```{r test 58 data preparation, message=FALSE, warning=FALSE}
+if (!require("moments")) {
+  install.packages("moments")
+  library(moments)
+}
+
+set.seed(123)
+normal_data <- rnorm(100)
+plot(normal_data)
+```
+
+```{r test 58, message=FALSE, warning=FALSE}
+agostino.test(normal_data)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the data is not skewed.
+
+### Test 59 Anscombe-Glynn Test of Kurtosis
+
+Question to the test addresses:
+
+**Does the sample exhibit more (or less) kurtosis relative to the normal distribution?**
+
+**Kurtosis:** Does the data have "heavy" or "light" tails compared to a normal distribution?
+
+A distribution with high kurtosis has a sharper peak and heavier tails (meaning more outliers are likely), while a distribution with low kurtosis is flatter with lighter tails.
+
+```{r test 59 data preparation, message=FALSE, warning=FALSE}
+if (!require("moments")) {
+  install.packages("moments")
+  library(moments)
+}
+
+set.seed(123)
+normal_data <- rnorm(100)
+plot(normal_data)
+```
+
+```{r test 59, message=FALSE, warning=FALSE}
+anscombe.test(normal_data)
+```
+
+According to the result, the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the data has the same kurtosis as a normal distribution.
+
+### Test 60 Bonett-Seier Test of Kurtosis
+
+Question to the test addresses:
+
+**Does the sample exhibit more (or less) kurtosis relative to the normal distribution?**
+
+To use this test:
+
+-   use Geary's measure to measure kurtosis
+
+-   run multiple tests for the same property to improve confidence
+
+Now we still use our previous normal_data here.
+
+```{r test 60, message=FALSE, warning=FALSE}
+bonett.test(normal_data)
+```
+
+According to the result, the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the data has the same kurtosis as a normal distribution.
+
+Now let's visualise these three tests for the normal distributions.
+
+```{r visualisation of test 58 59 60, message=FALSE, warning=FALSE}
+df_normal_data <- data.frame(normal_data = normal_data)
+
+ggplot(data = df_normal_data, aes(x = normal_data)) +
+  geom_histogram(aes(y = ..density..), bins = 10, fill = "skyblue", color = "black") +
+  geom_density(color = "blue", linewidth = 1) +
+  stat_function(fun = dnorm, args = list(mean = mean(normal_data), sd = sd(normal_data)), color = "red", linewidth = 1, linetype = "dashed") +
+  labs(title = "Histogram with Normal Curve Overlay",
+       x = "Value", y = "Density") +
+  theme_minimal()
+```
+
+```{r Q-Q plot, message=FALSE, warning=FALSE}
+ggplot(df_normal_data, aes(sample = normal_data)) +
+  stat_qq() +
+  stat_qq_line(color = "red", linetype = "dashed") +
+  labs(title = "Q-Q Plot for Normality",
+       x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme_minimal()
+```
