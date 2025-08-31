@@ -1,0 +1,301 @@
+---
+title: "Interactive Distribution Visualizer"
+author: "Gemini"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# This chunk sets up the environment.
+# include=FALSE prevents the code from appearing in the final document.
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(ggplot2)
+library(MASS) 
+library(htmltools)
+```
+
+### Introduction
+
+This interactive document allows you to visualize several common statistical distributions. Use the controls on the left to select a distribution and adjust its parameters. The plot and the description on the right will update automatically.
+
+***
+
+```{r distribution_app, echo=FALSE}
+# This chunk contains the Shiny application logic.
+# echo=FALSE hides the code but displays the interactive output.
+
+# Define custom PDF functions for distributions not in base R
+d_laplace <- function(x, mu, b) { (1 / (2 * b)) * exp(-abs(x - mu) / b) }
+d_pareto <- function(x, xm, alpha) { ifelse(x >= xm, (alpha * xm^alpha) / (x^(alpha + 1)), 0) }
+
+# Define the user interface (UI)
+fluidPage(
+  withMathJax(), # Initialize MathJax for LaTeX rendering
+  sidebarLayout(
+    # --- Sidebar with input controls ---
+    sidebarPanel(
+      width = 3,
+      h4("Distribution Controls"),
+      
+      # Dropdown to select the distribution type with groups
+      selectInput("dist_type", "Select Distribution:",
+                  choices = list(
+                    `Continuous` = c("Normal", "Exponential", "Gamma", "Beta", "Log-Normal", "Chi-Squared", "Student's t", "F-Distribution", "Weibull", "Cauchy", "Laplace", "Pareto"),
+                    `Discrete` = c("Binomial", "Poisson", "Geometric", "Negative Binomial", "Hypergeometric"),
+                    `Multivariate` = c("Bivariate Normal", "Multinomial")
+                  )),
+      
+      hr(),
+      
+      # --- Conditional Panels for Parameters ---
+      conditionalPanel("input.dist_type == 'Normal'",
+        sliderInput("norm_mean", "Mean (μ):", -20, 20, 0),
+        sliderInput("norm_sd", "Std Dev (σ):", 0.1, 10, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Exponential'",
+        sliderInput("exp_lambda", "Rate (λ):", 0.1, 5, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Gamma'",
+        sliderInput("gamma_shape", "Shape (α):", 0.1, 20, 2),
+        sliderInput("gamma_rate", "Rate (β):", 0.1, 5, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Beta'",
+        sliderInput("beta_shape1", "Shape 1 (α):", 0.1, 10, 2),
+        sliderInput("beta_shape2", "Shape 2 (β):", 0.1, 10, 2)
+      ),
+      conditionalPanel("input.dist_type == 'Log-Normal'",
+        sliderInput("lnorm_meanlog", "Mean of log(X) (μ):", -2, 2, 0, step=0.1),
+        sliderInput("lnorm_sdlog", "SD of log(X) (σ):", 0.1, 2, 0.5, step=0.1)
+      ),
+      conditionalPanel("input.dist_type == 'Chi-Squared'",
+        sliderInput("chisq_df", "Degrees of Freedom (k):", 1, 50, 5, step = 1)
+      ),
+      conditionalPanel("input.dist_type == 'Student\\'s t'",
+        sliderInput("t_df", "Degrees of Freedom (ν):", 1, 50, 10, step = 1)
+      ),
+      conditionalPanel("input.dist_type == 'F-Distribution'",
+        sliderInput("f_df1", "Numerator df (d1):", 1, 50, 5, step = 1),
+        sliderInput("f_df2", "Denominator df (d2):", 1, 50, 10, step = 1)
+      ),
+      conditionalPanel("input.dist_type == 'Weibull'",
+        sliderInput("weibull_shape", "Shape (k):", 0.1, 10, 2),
+        sliderInput("weibull_scale", "Scale (λ):", 0.1, 10, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Cauchy'",
+        sliderInput("cauchy_loc", "Location (x₀):", -10, 10, 0),
+        sliderInput("cauchy_scale", "Scale (γ):", 0.1, 5, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Laplace'",
+        sliderInput("laplace_mu", "Location (μ):", -10, 10, 0),
+        sliderInput("laplace_b", "Scale (b):", 0.1, 5, 1)
+      ),
+      conditionalPanel("input.dist_type == 'Pareto'",
+        sliderInput("pareto_xm", "Scale (xₘ):", 0.1, 5, 1),
+        sliderInput("pareto_alpha", "Shape (α):", 0.1, 5, 2)
+      ),
+      conditionalPanel("input.dist_type == 'Binomial'",
+        sliderInput("binom_size", "Trials (n):", 1, 100, 20, step = 1),
+        sliderInput("binom_prob", "Probability (p):", 0, 1, 0.5)
+      ),
+      conditionalPanel("input.dist_type == 'Poisson'",
+        sliderInput("pois_lambda", "Rate (λ):", 0.1, 50, 5)
+      ),
+      conditionalPanel("input.dist_type == 'Geometric'",
+        sliderInput("geom_p", "Probability (p):", 0.01, 1, 0.3)
+      ),
+      conditionalPanel("input.dist_type == 'Negative Binomial'",
+        sliderInput("nbinom_r", "Successes (r):", 1, 50, 10, step=1),
+        sliderInput("nbinom_p", "Probability (p):", 0.01, 1, 0.5)
+      ),
+      conditionalPanel("input.dist_type == 'Hypergeometric'",
+        sliderInput("hyper_N", "Population (N):", 10, 200, 50, step=1),
+        sliderInput("hyper_K", "Successes in Pop (K):", 1, 200, 20, step=1),
+        sliderInput("hyper_n", "Sample Size (n):", 1, 200, 15, step=1)
+      ),
+      conditionalPanel("input.dist_type == 'Bivariate Normal'",
+        sliderInput("biv_cor", "Correlation (ρ):", -0.99, 0.99, 0.5)
+      ),
+      conditionalPanel("input.dist_type == 'Multinomial'",
+        sliderInput("multi_n", "Trials (n):", 1, 100, 20, step=1),
+        p("Probabilities (p1, p2, p3) are fixed at (0.5, 0.3, 0.2) for this visualization.")
+      )
+    ),
+    
+    # --- Main panel for displaying the plot and description ---
+    mainPanel(
+      width = 9,
+      plotOutput("dist_plot", height = "450px"),
+      hr(),
+      uiOutput("dist_description")
+    )
+  )
+)
+
+# Define the server logic
+output$dist_plot <- renderPlot({
+  
+  dist_type <- input$dist_type
+  p <- ggplot() + theme_minimal(base_size = 14)
+  
+  if (dist_type %in% c("Normal", "Exponential", "Gamma", "Beta", "Log-Normal", "Chi-Squared", "Student's t", "F-Distribution", "Weibull", "Cauchy", "Laplace", "Pareto")) {
+    # Continuous Distributions
+    x_vals <- switch(dist_type,
+      "Normal" = seq(input$norm_mean - 4*input$norm_sd, input$norm_mean + 4*input$norm_sd, length.out=500),
+      "Exponential" = seq(0, qexp(0.999, input$exp_lambda), length.out=500),
+      "Gamma" = seq(0, qgamma(0.999, input$gamma_shape, input$gamma_rate), length.out=500),
+      "Beta" = seq(0, 1, length.out=500),
+      "Log-Normal" = seq(0, qlnorm(0.99, input$lnorm_meanlog, input$lnorm_sdlog), length.out=500),
+      "Chi-Squared" = seq(0, qchisq(0.999, input$chisq_df), length.out=500),
+      "Student's t" = seq(qt(0.001, input$t_df), qt(0.999, input$t_df), length.out=500),
+      "F-Distribution" = seq(0, qf(0.99, input$f_df1, input$f_df2), length.out=500),
+      "Weibull" = seq(0, qweibull(0.999, input$weibull_shape, input$weibull_scale), length.out=500),
+      "Cauchy" = seq(input$cauchy_loc - 10*input$cauchy_scale, input$cauchy_loc + 10*input$cauchy_scale, length.out=500),
+      "Laplace" = seq(input$laplace_mu - 10*input$laplace_b, input$laplace_mu + 10*input$laplace_b, length.out=500),
+      "Pareto" = seq(input$pareto_xm, input$pareto_xm + 20, length.out=500)
+    )
+    y_vals <- switch(dist_type,
+      "Normal" = dnorm(x_vals, input$norm_mean, input$norm_sd),
+      "Exponential" = dexp(x_vals, input$exp_lambda),
+      "Gamma" = dgamma(x_vals, input$gamma_shape, input$gamma_rate),
+      "Beta" = dbeta(x_vals, input$beta_shape1, input$beta_shape2),
+      "Log-Normal" = dlnorm(x_vals, input$lnorm_meanlog, input$lnorm_sdlog),
+      "Chi-Squared" = dchisq(x_vals, input$chisq_df),
+      "Student's t" = dt(x_vals, input$t_df),
+      "F-Distribution" = df(x_vals, input$f_df1, input$f_df2),
+      "Weibull" = dweibull(x_vals, input$weibull_shape, input$weibull_scale),
+      "Cauchy" = dcauchy(x_vals, input$cauchy_loc, input$cauchy_scale),
+      "Laplace" = d_laplace(x_vals, input$laplace_mu, input$laplace_b),
+      "Pareto" = d_pareto(x_vals, input$pareto_xm, input$pareto_alpha)
+    )
+    df <- data.frame(x = x_vals, y = y_vals)
+    p <- p + geom_line(data=df, aes(x,y), color="steelblue", size=1.2) + geom_area(data=df, aes(x,y), fill="steelblue", alpha=0.2) + labs(x="Value", y="Density", title=dist_type)
+  } else if (dist_type %in% c("Binomial", "Poisson", "Geometric", "Negative Binomial", "Hypergeometric")) {
+    # Discrete Distributions
+    x_vals <- switch(dist_type,
+      "Binomial" = 0:input$binom_size,
+      "Poisson" = 0:qpois(0.999, input$pois_lambda),
+      "Geometric" = 1:qgeom(0.999, input$geom_p),
+      "Negative Binomial" = 0:qnbinom(0.999, input$nbinom_r, input$nbinom_p),
+      "Hypergeometric" = max(0, input$hyper_n - (input$hyper_N-input$hyper_K)):min(input$hyper_n, input$hyper_K)
+    )
+    y_vals <- switch(dist_type,
+      "Binomial" = dbinom(x_vals, input$binom_size, input$binom_prob),
+      "Poisson" = dpois(x_vals, input$pois_lambda),
+      "Geometric" = dgeom(x_vals - 1, input$geom_p), # R geom is number of failures, so adjust
+      "Negative Binomial" = dnbinom(x_vals, input$nbinom_r, input$nbinom_p),
+      "Hypergeometric" = dhyper(x_vals, input$hyper_K, input$hyper_N - input$hyper_K, input$hyper_n)
+    )
+    df <- data.frame(x = x_vals, y = y_vals)
+    p <- p + geom_col(data=df, aes(x=factor(x), y=y), fill="mediumpurple", alpha=0.8) + labs(x="Number of Events/Successes", y="Probability", title=dist_type)
+  } else if (dist_type == "Bivariate Normal") {
+    mu <- c(0, 0)
+    sigma <- matrix(c(1, input$biv_cor, input$biv_cor, 1), nrow = 2)
+    set.seed(123)
+    biv_data <- as.data.frame(mvrnorm(n = 2000, mu = mu, Sigma = sigma))
+    names(biv_data) <- c("X", "Y")
+    p <- p + geom_density_2d_filled(data=biv_data, aes(x = X, y = Y), alpha = 0.8, show.legend = FALSE) +
+      labs(title = paste("Bivariate Normal Distribution (ρ = ", input$biv_cor, ")", sep=""), x = "X", y = "Y") + coord_equal()
+  } else if (dist_type == "Multinomial") {
+    probs <- c(0.5, 0.3, 0.2)
+    set.seed(123)
+    sim_data <- as.data.frame(t(rmultinom(1000, size=input$multi_n, prob=probs)))
+    df <- data.frame(Category = factor(c("Cat 1", "Cat 2", "Cat 3"), levels=c("Cat 1", "Cat 2", "Cat 3")), 
+                     Probability = probs)
+    p <- p + geom_col(data=df, aes(x=Category, y=Probability, fill=Category), show.legend=FALSE) +
+      labs(title=paste("Multinomial Probabilities for n =", input$multi_n), y="Probability")
+  }
+  
+  print(p)
+})
+
+output$dist_description <- renderUI({
+  dist_type <- input$dist_type
+  
+  desc <- switch(dist_type,
+    "Normal" = list(
+      formula = "$$f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{ -\\frac{1}{2} (\\frac{x-\\mu}{\\sigma})^2 }$$",
+      text = "The normal (or Gaussian) distribution is fundamental in statistics. It describes data that clusters around a mean value. The distribution is symmetric and bell-shaped. Key properties include the 68-95-99.7 rule for data within 1, 2, and 3 standard deviations of the mean."
+    ),
+    "Exponential" = list(
+      formula = "$$f(x) = \\lambda e^{-\\lambda x} \\quad \\text{for } x \\ge 0$$",
+      text = "The exponential distribution models the time between events in a Poisson process, where events occur independently and at a constant average rate. It has the memoryless property, meaning past events do not affect future probabilities. Common applications include modeling the lifetime of products or the time between customer arrivals."
+    ),
+    "Gamma" = list(
+      formula = "$$f(x) = \\frac{\\beta^\\alpha}{\\Gamma(\\alpha)} x^{\\alpha-1} e^{-\\beta x} \\quad \\text{for } x > 0$$",
+      text = "The gamma distribution is a flexible two-parameter family of continuous probability distributions. It generalizes the exponential distribution; a gamma distribution with shape parameter α=1 is an exponential distribution. It is often used to model waiting times, rainfall amounts, and insurance claims."
+    ),
+    "Beta" = list(
+      formula = "$$f(x) = \\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)} \\quad \\text{for } 0 \\le x \\le 1$$",
+      text = "The beta distribution is defined on the interval [0, 1] and is governed by two shape parameters, α and β. It is often used to model the distribution of proportions or probabilities. Depending on the parameters, its shape can be U-shaped, bell-shaped, or skewed."
+    ),
+    "Log-Normal" = list(
+      formula = "$$f(x) = \\frac{1}{x\\sigma\\sqrt{2\\pi}} e^{ -\\frac{(\\ln(x)-\\mu)^2}{2\\sigma^2} } \\quad \\text{for } x > 0$$",
+      text = "A variable is log-normally distributed if its logarithm is normally distributed. The distribution is right-skewed with a long tail. It is commonly used to model variables that are the product of many small independent factors, such as income distributions and stock prices."
+    ),
+    "Chi-Squared" = list(
+      formula = "$$f(x) = \\frac{1}{2^{k/2}\\Gamma(k/2)} x^{\\frac{k}{2}-1} e^{-\\frac{x}{2}} \\quad \\text{for } x > 0$$",
+      text = "The chi-squared distribution with k degrees of freedom is the distribution of a sum of the squares of k independent standard normal random variables. It is widely used in hypothesis testing, such as in chi-squared tests for goodness-of-fit and independence."
+    ),
+    "Student's t" = list(
+      formula = "$$f(x) = \\frac{\\Gamma(\\frac{\\nu+1}{2})}{\\sqrt{\\nu\\pi}\\Gamma(\\frac{\\nu}{2})} (1+\\frac{x^2}{\\nu})^{-\\frac{\\nu+1}{2}}$$",
+      text = "The Student's t-distribution resembles the normal distribution but has heavier tails, meaning it is more prone to producing values that fall far from its mean. It is used in hypothesis testing when the sample size is small and the population standard deviation is unknown. As the degrees of freedom (ν) increase, it approaches the normal distribution."
+    ),
+    "F-Distribution" = list(
+      formula = "$$f(x) = \\frac{\\sqrt{\\frac{(d_1 x)^{d_1} d_2^{d_2}}{(d_1 x + d_2)^{d_1+d_2}}}}{x B(\\frac{d_1}{2}, \\frac{d_2}{2})}$$",
+      text = "The F-distribution is the ratio of two independent chi-squared variables, each divided by their degrees of freedom. It is right-skewed and is fundamental to Analysis of Variance (ANOVA) for comparing the means of multiple groups, and in regression analysis to test the overall significance of a model."
+    ),
+    "Weibull" = list(
+      formula = "$$f(x) = \\frac{k}{\\lambda} (\\frac{x}{\\lambda})^{k-1} e^{-(x/\\lambda)^k} \\quad \\text{for } x \\ge 0$$",
+      text = "The Weibull distribution is widely used in reliability engineering and survival analysis to model failure times. The shape parameter (k) determines whether the failure rate is increasing (k>1), decreasing (k<1), or constant (k=1, which is the exponential distribution)."
+    ),
+    "Cauchy" = list(
+      formula = "$$f(x) = \\frac{1}{\\pi\\gamma(1+(\\frac{x-x_0}{\\gamma})^2)}$$",
+      text = "The Cauchy distribution is a symmetric, bell-shaped distribution with much heavier tails than the normal distribution. A notable property is that its expected value (mean) and variance are undefined. It is equivalent to a t-distribution with one degree of freedom."
+    ),
+    "Laplace" = list(
+      formula = "$$f(x) = \\frac{1}{2b} e^{-\\frac{|x-\\mu|}{b}}$$",
+      text = "The Laplace distribution, also known as the double exponential distribution, has a sharper peak at its mean and heavier tails compared to a normal distribution. It is used in signal processing, finance, and robust statistics where outliers are more common."
+    ),
+    "Pareto" = list(
+      formula = "$$f(x) = \\frac{\\alpha x_m^\\alpha}{x^{\\alpha+1}} \\quad \\text{for } x \\ge x_m$$",
+      text = "The Pareto distribution is a power-law distribution used to model phenomena where a large portion of the 'wealth' or 'effect' is held by a small fraction of the population or causes. It is famously associated with the '80-20 rule' and is used to model income distribution, city sizes, and internet traffic."
+    ),
+    "Binomial" = list(
+      formula = "$$P(X=k) = \\binom{n}{k} p^k (1-p)^{n-k}$$",
+      text = "The binomial distribution models the number of successes (k) in a fixed number of independent trials (n), where each trial has the same probability of success (p). Its mean is np and variance is np(1-p). It is used in quality control, clinical trials, and surveys."
+    ),
+    "Poisson" = list(
+      formula = "$$P(X=k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}$$",
+      text = "The Poisson distribution models the number of events occurring in a fixed interval of time or space, given that these events happen with a known constant mean rate (λ) and independently of the time since the last event. The mean and variance are both equal to λ. It is used for modeling call center arrivals, defects in manufacturing, and other rare events."
+    ),
+    "Geometric" = list(
+      formula = "$$P(X=k) = (1-p)^{k-1} p \\quad \\text{for } k=1,2,3...$$",
+      text = "The geometric distribution models the number of trials (k) needed to get the first success in a series of independent Bernoulli trials. Like the exponential distribution, it has the memoryless property. It is used in quality testing and for modeling waiting times in discrete trials."
+    ),
+    "Negative Binomial" = list(
+      formula = "$$P(X=k) = \\binom{k+r-1}{k} p^r (1-p)^k$$",
+      text = "The negative binomial distribution models the number of failures (k) that occur before a specified number of successes (r) is reached. It is a generalization of the geometric distribution. It is often used for count data that is 'overdispersed' (i.e., has a variance greater than its mean), a common scenario in accident statistics."
+    ),
+    "Hypergeometric" = list(
+      formula = "$$P(X=k) = \\frac{\\binom{K}{k} \\binom{N-K}{n-k}}{\\binom{N}{n}}$$",
+      text = "The hypergeometric distribution models the number of successes (k) in a sample of size n drawn without replacement from a finite population of size N that contains K successes. Unlike the binomial distribution, the probability of success changes with each draw. It is used in quality inspection, card games, and ecological sampling."
+    ),
+    "Bivariate Normal" = list(
+      formula = "$$f(x,y) = \\frac{1}{2\\pi\\sigma_x\\sigma_y\\sqrt{1-\\rho^2}} \\exp(-\\frac{1}{2(1-\\rho^2)}[\\frac{(x-\\mu_x)^2}{\\sigma_x^2} - \\frac{2\\rho(x-\\mu_x)(y-\\mu_y)}{\\sigma_x\\sigma_y} + \\frac{(y-\\mu_y)^2}{\\sigma_y^2}])$$",
+      text = "The bivariate normal distribution extends the normal distribution to two variables. The correlation parameter (ρ) controls the strength and direction of the linear relationship between the variables. Its marginal distributions are each normal. It is used for paired measurements like height and weight, financial returns, and biometric data. The plot shows the density for the standard case where means are 0 and standard deviations are 1."
+    ),
+    "Multinomial" = list(
+      formula = "$$P(X_1=k_1, ..., X_m=k_m) = \\frac{n!}{k_1!...k_m!} p_1^{k_1}...p_m^{k_m}$$",
+      text = "The multinomial distribution generalizes the binomial distribution to multiple categories. It models the probability of counts for each of m categories after n independent trials, where the probability of falling into category i is p_i. The plot shows the fixed probabilities for three categories."
+    )
+  )
+  
+  tagList(
+    h3("Description"),
+    p(desc$text),
+    h4("Formula"),
+    HTML(desc$formula)
+  )
+})

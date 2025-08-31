@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Distributions Visualisation Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.5/jstat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .distribution-selector {
+            margin-bottom: 20px;
+        }
+        select, input[type="number"] {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .parameters {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .parameter-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .description {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .export-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .export-button:hover {
+            background-color: #45a049;
+        }
+        .export-message {
+            display: inline-block;
+            margin-left: 10px;
+            color: #4CAF50;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .export-message.show {
+            opacity: 1;
+        }
+        .formula {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-left: 3px solid #2196F3;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Statistical Distributions Visualisation Tool</h1>
+        
+        <div class="distribution-selector">
+            <label for="distType">Select Distribution Type:</label>
+            <select id="distType" onchange="changeDistribution()">
+                <optgroup label="Continuous Distributions">
+                    <option value="normal">Normal (Gaussian)</option>
+                    <option value="exponential">Exponential</option>
+                    <option value="gamma">Gamma</option>
+                    <option value="beta">Beta</option>
+                    <option value="chi2">Chi-Squared</option>
+                    <option value="t">Student's t</option>
+                    <option value="f">F-Distribution</option>
+                    <option value="lognormal">Log-Normal</option>
+                    <option value="weibull">Weibull</option>
+                    <option value="cauchy">Cauchy</option>
+                    <option value="laplace">Laplace</option>
+                    <option value="pareto">Pareto</option>
+                </optgroup>
+                <optgroup label="Discrete Distributions">
+                    <option value="binomial">Binomial</option>
+                    <option value="poisson">Poisson</option>
+                    <option value="geometric">Geometric</option>
+                    <option value="negativebinomial">Negative Binomial</option>
+                    <option value="hypergeometric">Hypergeometric</option>
+                </optgroup>
+                <optgroup label="Multivariate Distributions">
+                    <option value="bivariate-normal">Bivariate Normal</option>
+                    <option value="multinomial">Multinomial</option>
+                </optgroup>
+            </select>
+        </div>
+        
+        <div id="parameters" class="parameters"></div>
+        
+        <button class="export-button" onclick="exportChart()">Copy Chart to Clipboard</button>
+        <span id="exportMessage" class="export-message">Copied!</span>
+        
+        <div class="chart-container">
+            <canvas id="distributionChart"></canvas>
+        </div>
+        
+        <div id="description" class="description"></div>
+    </div>
+
+    <script>
+        let chart = null;
+        
+        const distributions = {
+            normal: {
+                params: [
+                    {name: 'mean', label: 'Mean (μ)', default: 0, min: -10, max: 10, step: 0.1},
+                    {name: 'sd', label: 'Standard Deviation (σ)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Normal distribution is fundamental in statistics. It describes data that clusters around a mean value. The distribution is symmetric and bell-shaped.
+                <div class="formula">f(x) = (1/σ√(2π)) × e^(-½((x-μ)/σ)²)</div>
+                Properties: 68% of data falls within one standard deviation of mean, 95% within two standard deviations, and 99.7% within three standard deviations.`,
+                calculate: (x, params) => jStat.normal.pdf(x, params.mean, params.sd)
+            },
+            exponential: {
+                params: [
+                    {name: 'lambda', label: 'Rate (λ)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Exponential distribution models time between events in a Poisson process. It has memoryless property - past events do not affect future probabilities.
+                <div class="formula">f(x) = λe^(-λx) for x ≥ 0</div>
+                Common applications: time between arrivals, lifetime of products, radioactive decay.`,
+                calculate: (x, params) => x >= 0 ? jStat.exponential.pdf(x, params.lambda) : 0
+            },
+            gamma: {
+                params: [
+                    {name: 'alpha', label: 'Shape (α)', default: 2, min: 0.1, max: 10, step: 0.1},
+                    {name: 'beta', label: 'Rate (β)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Gamma distribution generalises exponential distribution. When shape parameter equals 1, it becomes exponential distribution.
+                <div class="formula">f(x) = (β^α/Γ(α)) × x^(α-1) × e^(-βx) for x > 0</div>
+                Applications: waiting times, rainfall amounts, insurance claims.`,
+                calculate: (x, params) => x > 0 ? jStat.gamma.pdf(x, params.alpha, params.beta) : 0
+            },
+            beta: {
+                params: [
+                    {name: 'alpha', label: 'Shape α', default: 2, min: 0.1, max: 10, step: 0.1},
+                    {name: 'beta', label: 'Shape β', default: 2, min: 0.1, max: 10, step: 0.1}
+                ],
+                description: `Beta distribution is defined on interval [0,1]. Shape parameters control distribution form - can be U-shaped, bell-shaped, or skewed.
+                <div class="formula">f(x) = (x^(α-1) × (1-x)^(β-1)) / B(α,β) for 0 ≤ x ≤ 1</div>
+                Applications: proportions, probabilities, Bayesian statistics.`,
+                calculate: (x, params) => (x >= 0 && x <= 1) ? jStat.beta.pdf(x, params.alpha, params.beta) : 0
+            },
+            chi2: {
+                params: [
+                    {name: 'df', label: 'Degrees of Freedom', default: 5, min: 1, max: 30, step: 1}
+                ],
+                description: `Chi-squared distribution arises from sum of squared standard normal variables. Degrees of freedom determine shape.
+                <div class="formula">f(x) = (1/(2^(k/2)Γ(k/2))) × x^(k/2-1) × e^(-x/2) for x > 0</div>
+                Applications: hypothesis testing, goodness-of-fit tests, confidence intervals for variance.`,
+                calculate: (x, params) => x > 0 ? jStat.chisquare.pdf(x, params.df) : 0
+            },
+            t: {
+                params: [
+                    {name: 'df', label: 'Degrees of Freedom', default: 10, min: 1, max: 30, step: 1}
+                ],
+                description: `Student's t-distribution resembles normal distribution but has heavier tails. As degrees of freedom increase, it approaches normal distribution.
+                <div class="formula">f(x) = Γ((ν+1)/2) / (√(νπ)Γ(ν/2)) × (1 + x²/ν)^(-(ν+1)/2)</div>
+                Applications: hypothesis testing with small samples, confidence intervals for mean.`,
+                calculate: (x, params) => jStat.studentt.pdf(x, params.df)
+            },
+            f: {
+                params: [
+                    {name: 'df1', label: 'Numerator DF', default: 5, min: 1, max: 30, step: 1},
+                    {name: 'df2', label: 'Denominator DF', default: 10, min: 1, max: 30, step: 1}
+                ],
+                description: `F-distribution is ratio of two chi-squared distributions. Used in analysis of variance (ANOVA).
+                <div class="formula">f(x) = √((d₁x)^d₁ × d₂^d₂ / (d₁x + d₂)^(d₁+d₂)) / (x × B(d₁/2, d₂/2))</div>
+                Applications: comparing variances, ANOVA, regression analysis.`,
+                calculate: (x, params) => x > 0 ? jStat.centralF.pdf(x, params.df1, params.df2) : 0
+            },
+            lognormal: {
+                params: [
+                    {name: 'mu', label: 'Mean of ln(X)', default: 0, min: -2, max: 2, step: 0.1},
+                    {name: 'sigma', label: 'SD of ln(X)', default: 0.5, min: 0.1, max: 2, step: 0.1}
+                ],
+                description: `Log-normal distribution occurs when logarithm of variable is normally distributed. Right-skewed with long tail.
+                <div class="formula">f(x) = (1/(xσ√(2π))) × e^(-½((ln(x)-μ)/σ)²) for x > 0</div>
+                Applications: income distribution, stock prices, particle sizes.`,
+                calculate: (x, params) => x > 0 ? jStat.lognormal.pdf(x, params.mu, params.sigma) : 0
+            },
+            weibull: {
+                params: [
+                    {name: 'shape', label: 'Shape (k)', default: 2, min: 0.1, max: 5, step: 0.1},
+                    {name: 'scale', label: 'Scale (λ)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Weibull distribution models failure times. Shape parameter determines whether failure rate increases, decreases, or remains constant.
+                <div class="formula">f(x) = (k/λ) × (x/λ)^(k-1) × e^(-(x/λ)^k) for x ≥ 0</div>
+                Applications: reliability engineering, survival analysis, wind speed modelling.`,
+                calculate: (x, params) => x >= 0 ? jStat.weibull.pdf(x, params.scale, params.shape) : 0
+            },
+            cauchy: {
+                params: [
+                    {name: 'location', label: 'Location (x₀)', default: 0, min: -5, max: 5, step: 0.1},
+                    {name: 'scale', label: 'Scale (γ)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Cauchy distribution has heavy tails and no defined mean or variance. It is t-distribution with one degree of freedom.
+                <div class="formula">f(x) = 1/(πγ(1 + ((x-x₀)/γ)²))</div>
+                Applications: physics (resonance), finance (extreme events), ratio of normal variables.`,
+                calculate: (x, params) => 1 / (Math.PI * params.scale * (1 + Math.pow((x - params.location) / params.scale, 2)))
+            },
+            laplace: {
+                params: [
+                    {name: 'mu', label: 'Location (μ)', default: 0, min: -5, max: 5, step: 0.1},
+                    {name: 'b', label: 'Scale (b)', default: 1, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Laplace distribution (double exponential) has sharper peak than normal distribution and heavier tails.
+                <div class="formula">f(x) = (1/2b) × e^(-|x-μ|/b)</div>
+                Applications: signal processing, finance, robust statistics.`,
+                calculate: (x, params) => (1 / (2 * params.b)) * Math.exp(-Math.abs(x - params.mu) / params.b)
+            },
+            pareto: {
+                params: [
+                    {name: 'xm', label: 'Scale (xₘ)', default: 1, min: 0.1, max: 5, step: 0.1},
+                    {name: 'alpha', label: 'Shape (α)', default: 2, min: 0.1, max: 5, step: 0.1}
+                ],
+                description: `Pareto distribution follows power law. Used for modelling phenomena where large values are rare but possible.
+                <div class="formula">f(x) = αx_m^α / x^(α+1) for x ≥ x_m</div>
+                Applications: income distribution (80-20 rule), city sizes, internet traffic.`,
+                calculate: (x, params) => x >= params.xm ? (params.alpha * Math.pow(params.xm, params.alpha)) / Math.pow(x, params.alpha + 1) : 0
+            },
+            binomial: {
+                params: [
+                    {name: 'n', label: 'Trials (n)', default: 10, min: 1, max: 50, step: 1},
+                    {name: 'p', label: 'Probability (p)', default: 0.5, min: 0, max: 1, step: 0.05}
+                ],
+                description: `Binomial distribution models number of successes in fixed number of independent trials with constant probability.
+                <div class="formula">P(X = k) = C(n,k) × p^k × (1-p)^(n-k)</div>
+                Properties: mean = np, variance = np(1-p). Applications: quality control, clinical trials, survey sampling.`,
+                calculate: (x, params) => jStat.binomial.pdf(Math.floor(x), params.n, params.p),
+                discrete: true
+            },
+            poisson: {
+                params: [
+                    {name: 'lambda', label: 'Rate (λ)', default: 3, min: 0.1, max: 20, step: 0.1}
+                ],
+                description: `Poisson distribution models count of events in fixed interval when events occur independently at constant rate.
+                <div class="formula">P(X = k) = (λ^k × e^(-λ)) / k!</div>
+                Properties: mean = variance = λ. Applications: call centre arrivals, defects in manufacturing, rare events.`,
+                calculate: (x, params) => jStat.poisson.pdf(Math.floor(x), params.lambda),
+                discrete: true
+            },
+            geometric: {
+                params: [
+                    {name: 'p', label: 'Success Probability', default: 0.3, min: 0.01, max: 0.99, step: 0.01}
+                ],
+                description: `Geometric distribution models number of trials needed for first success. It has memoryless property.
+                <div class="formula">P(X = k) = (1-p)^(k-1) × p for k = 1, 2, 3, ...</div>
+                Properties: mean = 1/p, variance = (1-p)/p². Applications: quality testing, waiting times in discrete trials.`,
+                calculate: (x, params) => x >= 1 ? Math.pow(1 - params.p, Math.floor(x) - 1) * params.p : 0,
+                discrete: true
+            },
+            negativebinomial: {
+                params: [
+                    {name: 'r', label: 'Successes (r)', default: 5, min: 1, max: 20, step: 1},
+                    {name: 'p', label: 'Success Probability', default: 0.5, min: 0.01, max: 0.99, step: 0.01}
+                ],
+                description: `Negative binomial distribution models number of failures before specified number of successes.
+                <div class="formula">P(X = k) = C(k+r-1, k) × p^r × (1-p)^k</div>
+                Generalises geometric distribution. Applications: overdispersed count data, accident statistics.`,
+                calculate: (x, params) => {
+                    const k = Math.floor(x);
+                    if (k < 0) return 0;
+                    return jStat.combination(k + params.r - 1, k) * Math.pow(params.p, params.r) * Math.pow(1 - params.p, k);
+                },
+                discrete: true
+            },
+            hypergeometric: {
+                params: [
+                    {name: 'N', label: 'Population Size', default: 50, min: 10, max: 100, step: 1},
+                    {name: 'K', label: 'Success States', default: 20, min: 1, max: 50, step: 1},
+                    {name: 'n', label: 'Sample Size', default: 10, min: 1, max: 30, step: 1}
+                ],
+                description: `Hypergeometric distribution models sampling without replacement. Unlike binomial, probability changes with each draw.
+                <div class="formula">P(X = k) = (C(K,k) × C(N-K,n-k)) / C(N,n)</div>
+                Applications: quality inspection, card games, ecological sampling.`,
+                calculate: (x, params) => {
+                    const k = Math.floor(x);
+                    if (k < 0 || k > Math.min(params.n, params.K) || k > params.n) return 0;
+                    return (jStat.combination(params.K, k) * jStat.combination(params.N - params.K, params.n - k)) / jStat.combination(params.N, params.n);
+                },
+                discrete: true
+            },
+            'bivariate-normal': {
+                params: [
+                    {name: 'rho', label: 'Correlation (ρ)', default: 0.5, min: -0.9, max: 0.9, step: 0.1}
+                ],
+                description: `Bivariate normal distribution extends normal distribution to two variables. Correlation parameter controls linear relationship between variables.
+                <div class="formula">f(x,y) = (1/(2π√(1-ρ²))) × exp(-1/(2(1-ρ²)) × [x² - 2ρxy + y²])</div>
+                Marginal distributions are standard normal. Applications: paired measurements, financial returns, biometric data.`,
+                calculate: null,
+                is2D: true
+            },
+            multinomial: {
+                params: [
+                    {name: 'n', label: 'Trials', default: 10, min: 1, max: 30, step: 1}
+                ],
+                description: `Multinomial distribution generalises binomial to multiple categories. Models outcomes when each trial has more than two possible results.
+                <div class="formula">P(X₁=k₁,...,Xₖ=kₖ) = n!/(k₁!...kₖ!) × p₁^k₁...pₖ^kₖ</div>
+                Sum of all outcomes equals number of trials. Applications: categorical data analysis, voting patterns, genetics.`,
+                calculate: null,
+                isSpecial: true
+            }
+        };
+        
+        function generateData(distType, params) {
+            const dist = distributions[distType];
+            let xValues = [];
+            let yValues = [];
+            
+            if (dist.is2D) {
+                // Handle 2D distributions differently
+                return generate2DData(distType, params);
+            }
+            
+            if (dist.isSpecial) {
+                // Handle special distributions
+                return generateSpecialData(distType, params);
+            }
+            
+            // Determine x range based on distribution
+            let xMin, xMax, step;
+            switch(distType) {
+                case 'beta':
+                    xMin = 0; xMax = 1; step = 0.01;
+                    break;
+                case 'exponential':
+                case 'gamma':
+                case 'chi2':
+                case 'f':
+                case 'lognormal':
+                case 'weibull':
+                case 'pareto':
+                    xMin = 0; xMax = Math.min(20, params.xm ? params.xm * 10 : 10); step = 0.1;
+                    break;
+                case 'binomial':
+                case 'poisson':
+                case 'geometric':
+                case 'negativebinomial':
+                case 'hypergeometric':
+                    xMin = 0; xMax = distType === 'binomial' ? params.n : 
+                           distType === 'hypergeometric' ? Math.min(params.n, params.K) : 
+                           Math.min(50, params.lambda ? params.lambda * 4 : 20);
+                    step = 1;
+                    break;
+                default:
+                    xMin = -10; xMax = 10; step = 0.1;
+            }
+            
+            for (let x = xMin; x <= xMax; x += step) {
+                const roundedX = dist.discrete ? x : Math.round(x * 100) / 100;
+                xValues.push(roundedX);
+                yValues.push(dist.calculate(x, params));
+            }
+            
+            return {xValues, yValues};
+        }
+        
+        function generate2DData(distType, params) {
+            if (distType === 'bivariate-normal') {
+                // Generate data for bivariate normal as multiple curves
+                const rho = params.rho;
+                const curves = [];
+                const levels = [0.01, 0.05, 0.1, 0.2, 0.3]; // Contour levels
+                
+                levels.forEach((level, index) => {
+                    const points = [];
+                    const numPoints = 100;
+                    
+                    for (let i = 0; i < numPoints; i++) {
+                        const angle = (2 * Math.PI * i) / numPoints;
+                        const c = -2 * Math.log(level);
+                        const denominator = Math.sqrt(c * (1 - rho * rho));
+                        
+                        const a = Math.sqrt(c);
+                        const x = a * Math.cos(angle);
+                        const y = (a / Math.sqrt(1 - rho * rho)) * (Math.sin(angle) - rho * Math.cos(angle));
+                        
+                        points.push({x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100});
+                    }
+                    
+                    curves.push({
+                        label: `Density = ${level}`,
+                        data: points,
+                        fill: false,
+                        borderColor: `rgba(54, 162, 235, ${0.2 + index * 0.15})`,
+                        backgroundColor: 'transparent',
+                        pointRadius: 0,
+                        tension: 0.4
+                    });
+                });
+                
+                return {datasets: curves, type: 'contour'};
+            }
+        }
+        
+        function generateSpecialData(distType, params) {
+            if (distType === 'multinomial') {
+                // Example with 3 categories
+                const p = [0.3, 0.5, 0.2];
+                const categories = ['Category A', 'Category B', 'Category C'];
+                let data = [];
+                
+                // Calculate probabilities for different outcomes
+                for (let k1 = 0; k1 <= params.n; k1++) {
+                    for (let k2 = 0; k2 <= params.n - k1; k2++) {
+                        const k3 = params.n - k1 - k2;
+                        const prob = factorial(params.n) / (factorial(k1) * factorial(k2) * factorial(k3)) *
+                                    Math.pow(p[0], k1) * Math.pow(p[1], k2) * Math.pow(p[2], k3);
+                        if (prob > 0.01) { // Only show significant probabilities
+                            data.push({
+                                label: `(${k1}, ${k2}, ${k3})`,
+                                probability: prob
+                            });
+                        }
+                    }
+                }
+                return {data, type: 'bar'};
+            }
+        }
+        
+        function factorial(n) {
+            if (n <= 1) return 1;
+            return n * factorial(n - 1);
+        }
+        
+        function updateChart() {
+            const distType = document.getElementById('distType').value;
+            const params = {};
+            const dist = distributions[distType];
+            
+            // Get parameter values
+            dist.params.forEach(param => {
+                const input = document.getElementById(param.name);
+                params[param.name] = parseFloat(input.value);
+            });
+            
+            const data = generateData(distType, params);
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            if (data.type === 'contour') {
+                // Create contour plot for 2D distributions
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: data.datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'nearest',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'X'
+                                },
+                                type: 'linear',
+                                position: 'center'
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Y'
+                                },
+                                type: 'linear',
+                                position: 'center'
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: `Bivariate Normal Distribution (ρ = ${params.rho})`
+                            }
+                        }
+                    }
+                });
+            } else if (data.type === 'bar') {
+                // Bar chart for special distributions
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.data.map(d => d.label),
+                        datasets: [{
+                            label: 'Probability',
+                            data: data.data.map(d => d.probability),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Probability'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Regular line/bar chart
+                chart = new Chart(ctx, {
+                    type: dist.discrete ? 'bar' : 'line',
+                    data: {
+                        labels: data.xValues,
+                        datasets: [{
+                            label: dist.discrete ? 'Probability Mass' : 'Probability Density',
+                            data: data.yValues,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: dist.discrete ? 'rgba(75, 192, 192, 0.8)' : 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1,
+                            fill: !dist.discrete,
+                            pointRadius: dist.discrete ? 0 : 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Value'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return Math.round(value * 100) / 100;
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: dist.discrete ? 'Probability' : 'Density'
+                                }
+                            }
+                        },
+                        elements: {
+                            point: {
+                                radius: dist.discrete ? 0 : 1
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function changeDistribution() {
+            const distType = document.getElementById('distType').value;
+            const dist = distributions[distType];
+            const paramsDiv = document.getElementById('parameters');
+            const descDiv = document.getElementById('description');
+            
+            // Update parameters
+            paramsDiv.innerHTML = '<h3>Parameters</h3>';
+            dist.params.forEach(param => {
+                const paramGroup = document.createElement('div');
+                paramGroup.className = 'parameter-group';
+                paramGroup.innerHTML = `
+                    <label for="${param.name}">${param.label}:</label>
+                    <input type="number" id="${param.name}" value="${param.default}" 
+                           min="${param.min}" max="${param.max}" step="${param.step}"
+                           onchange="updateChart()">
+                `;
+                paramsDiv.appendChild(paramGroup);
+            });
+            
+            // Update description
+            descDiv.innerHTML = `<h3>Description</h3>${dist.description}`;
+            
+            // Update chart
+            updateChart();
+        }
+        
+        function exportChart() {
+            const chartContainer = document.querySelector('.chart-container');
+            html2canvas(chartContainer).then(canvas => {
+                canvas.toBlob(function(blob) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(function() {
+                        // Show success message
+                        const msg = document.getElementById('exportMessage');
+                        msg.classList.add('show');
+                        setTimeout(() => {
+                            msg.classList.remove('show');
+                        }, 2000);
+                    }).catch(function(error) {
+                        console.error('Error copying to clipboard:', error);
+                        alert('Failed to copy to clipboard. Please try again.');
+                    });
+                });
+            });
+        }
+        
+        // Initialise on load
+        window.onload = function() {
+            changeDistribution();
+        };
+    </script>
+</body>
+</html>
