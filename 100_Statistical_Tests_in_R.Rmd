@@ -1,12 +1,14 @@
 ---
 title: "100_Statistical_Tests_in_R"
 output:
-  html_notebook:
-    df_print: paged
-    toc: true
   html_document:
     toc: true
     df_print: paged
+  html_notebook: 
+    df_print: paged
+    toc: true
+    fig_caption: true
+    theme: cerulean
 bibliography: references.bib
 editor_options:
   chunk_output_type: inline
@@ -209,7 +211,7 @@ We can see the same results from both two packages. As the package {compOverlapC
 
 ### Test 6 Difference Between Two Non-Overlapping Dependent Correlation Coefficients
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the correlation between two variables (A and B) significantly different from the correlation between two other variables (C and D), when all four variables were measured in the same group.**
 
@@ -245,7 +247,7 @@ We can see the p-value is 0, smaller than the critical value 0.05. Therefore, we
 
 ### Test 7 Bartlett's Test of Sphericity
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are these variables essentially independent of each other?**
 
@@ -274,7 +276,7 @@ According to the result, we can find the p-value is smaller than the critical va
 
 ### Test 8 The Jennrich Test of the Equality of Two Matrices
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the fundamental pattern of correlations at A the same as the pattern at B?**
 
@@ -304,7 +306,7 @@ According to the result, we can find the p-value is larger than the critical val
 
 ### Test 9 The Granger Causality Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is one time series useful in forecasting another time series?**
 
@@ -377,7 +379,7 @@ ggplot(plot_data, aes(x=Date)) +
 
 ### Test 10 Durbin-Watson Autocorrelation Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is there serial correlation in the sample?**
 
@@ -423,7 +425,7 @@ ggplot(residual_data, aes(x = Lagged_Residuals, y= Residuals)) +
 
 ### Test 11 Breusch-Godfrey Autocorrelation Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is there serial correlation in the sample?**
 
@@ -457,7 +459,7 @@ According to this result, the p-value is larger than the critical value 0.05. Th
 
 ### Test 12 One-Sample t-test For a Hypothesised Mean
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the mean of a sample significantly different from a hypothesised mean?**
 
@@ -480,7 +482,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 13: One-sample Wilcoxon Signed-Rank Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the median of a sample significantly different from a hypothesised value?**
 
@@ -508,7 +510,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 14 Sign Test for a Hypothesised Median
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the median of a sample significantly different from a hypothesised median?**
 
@@ -534,7 +536,7 @@ According to the results, we can find that the p-value is larger than the critic
 
 ### Test 15 Two-sample t-test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two samples significantly different from zero?**
 
@@ -564,7 +566,7 @@ According to this result, we can find that the p-value is smaller than the criti
 
 ### Test 16 Pairwise t-test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of three or more samples significantly different from zero?**
 
@@ -586,7 +588,7 @@ The reason why the p-value of the pair "casein and soybean" is a bit larger than
 
 ### Test 17 Pairwise t-test with Common Variance
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of three or more samples significantly different from zero?**
 
@@ -608,7 +610,7 @@ The reason why three p-values of the pair "casein and soybean are different is t
 
 ### Test 18 Welch t-test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two sample groups significantly different from zero?**
 
@@ -629,7 +631,7 @@ According to the results, we can find that p-value is smaller than the critical 
 
 ### Test 19 Paired t-test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two related samples significantly different from zero?**
 
@@ -653,7 +655,7 @@ According to the results, we find that the p-value is larger than the critical v
 
 ### Test 20 Matched Pairs Wilcoxon Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two related samples significantly different from zero?**
 
@@ -677,7 +679,7 @@ Compared to the result in Test 19, we get the opposite conclusions. Test 19 indi
 
 ### Test 21 Pairwise Paired t-test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two samples significantly different from zero, when tested across multiple pairs?**
 
@@ -699,7 +701,7 @@ According to the result, we can find that the p-values across all pairs are smal
 
 ### Test 22 Pairwise Wilcox Test for the Difference in Sample Means
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the mean of two samples significantly different from zero, when tested across multiple pairs?**
 
@@ -719,7 +721,7 @@ According to this result, we can get the same conclusion based on the p-value.
 
 ### Test 23 Two-sample Dependent Sign Rank Test for Difference in Medians
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the median of two related samples significantly from zero?**
 
@@ -744,7 +746,7 @@ According to the result, we can find the p-value is smaller than the critical va
 
 ### Test 24 Wilcoxon Rank Sum Test for the Difference in Medians
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the median of two samples significantly different from zero?**
 
@@ -815,7 +817,7 @@ According to this result, we can find that the p-value is smaller than critical 
 
 ### Test 27 Bartels Test of Randomness in a Sample
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the sequence of observations in a sample randomly distributed?**
 
@@ -856,7 +858,7 @@ According to these results, we can find that the p-values are both smaller than 
 
 ### Test 30 BDS test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is a time series independent and identically distributed?**
 
@@ -876,7 +878,7 @@ According to the result, we can find that all p-values are smaller than the crit
 
 ### Test 31 Wald-Wolfowitz Two-Sample Run test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do two independent samples come from populations having the same distribution?**
 
@@ -909,7 +911,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 32 Mood's Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do two independent samples come from the same distribution?**
 
@@ -941,7 +943,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 33 F-test of Equality of Variances
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the variances of two samples equal?**
 
@@ -964,7 +966,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 34 Pitman-Morgan Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the variances of two correlated sample equal?**
 
@@ -1066,7 +1068,7 @@ According to the results, we get the same result again.
 
 ### Test 39 Cochran's C Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is single largest variance among a group of samples an outlier?**
 
@@ -1109,7 +1111,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 41 Mauchly's Sphericity Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the variances of the differences between all possible pairs of groups in a repeated measures analysis of variance equal?**
 
@@ -1145,7 +1147,7 @@ According to the results, we can find that the p-value in practice 1 is 1 and th
 
 ### Test 42 Binomial Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do the proportion on of individuals falling in each category diﬀer from chance? Or does the proportion on of individuals falling into each category differ from some pre-specified probabilities of falling into those categories?**
 
@@ -1159,7 +1161,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 43 One-Sample Proportions Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the observed proportion from a random experiment equal to some pre-specified probability?**
 
@@ -1173,7 +1175,7 @@ According to this result, we can find that the p-value is larger than the critic
 
 ### Test 44 One-Sample Poisson Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the rate parameter of a Poisson distributed sample significantly different from a hypothesized value?**
 
@@ -1191,7 +1193,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 45 Pairwise Comparison of Proportions Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the pairwise proportions in three or more samples significant?**
 
@@ -1226,7 +1228,7 @@ According to the result, we can find that the p-values between s2 and s4, s2 and
 
 ### Test 46 Two-Sample Poisson Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the rate parameter of a Poisson distributed sample significantly different from another?**
 
@@ -1252,7 +1254,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 47 Multiple Sample Proportions Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the difference between the observed proportions from two or more samples significantly different from zero?**
 
@@ -1276,7 +1278,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 48 Chi-Squared Test for Linear Trend
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is there a linear trend in the proportions across multiple ordered categories?**
 
@@ -1306,7 +1308,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 49 Pearson's Paired Chi-Squared Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the paired observations on two variables in a contingency table independent of each other?**
 
@@ -1335,7 +1337,7 @@ According to the result, we can find that p-value is smaller than the critical v
 
 ### Test 50 Fisher's Exact Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the paired observations on two variables in a contingency table independent of each other?**
 
@@ -1366,7 +1368,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 51 Cochran-Mantel-Haenszel Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is there a relationship between two categorical variables after adjusting for control variables?**
 
@@ -1400,7 +1402,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 52 McNemar's Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is there a difference between paired proportions?**
 
@@ -1433,7 +1435,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 53 Equal Means in a One-way Layout (ANOVA)
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do three or more samples come from populations with the same mean?**
 
@@ -1459,7 +1461,7 @@ The ANOVA test tells us that at least one group is different from others, but it
 
 ### Test 54 Welch-test for more than two samples (Welch's ANOVA)
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do your three or more samples come from populations with the same mean?**
 
@@ -1479,7 +1481,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 55 Kruskal-Wallis Rank Sum Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Do your three or more samples come from populations with the same mean?**
 
@@ -1503,7 +1505,7 @@ Kruskal-Wallis Rank Sum test has even fewer constraints. Therefore, the p-value 
 
 ### Test 56 Friedman's Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the distributions from various groups the same across repeated measures?**
 
@@ -1541,7 +1543,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 57 Quade Test
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Are the distributions from various groups the same across repeated measures?**
 
@@ -1563,7 +1565,7 @@ According to the result, we can find that the p-value is smaller than the critic
 
 ### Test 58 D'Agostino Test of Skewness
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Is the data skewed (symmetric or long tail on one side)?**
 
@@ -1592,7 +1594,7 @@ According to the result, we can find that the p-value is larger than the critica
 
 ### Test 59 Anscombe-Glynn Test of Kurtosis
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Does the sample exhibit more (or less) kurtosis relative to the normal distribution?**
 
@@ -1619,7 +1621,7 @@ According to the result, the p-value is larger than the critical value. Therefor
 
 ### Test 60 Bonett-Seier Test of Kurtosis
 
-Question to the test addresses:
+Question the test adrreses:
 
 **Does the sample exhibit more (or less) kurtosis relative to the normal distribution?**
 
@@ -1657,5 +1659,719 @@ ggplot(df_normal_data, aes(sample = normal_data)) +
   stat_qq_line(color = "red", linetype = "dashed") +
   labs(title = "Q-Q Plot for Normality",
        x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme_minimal()
+```
+
+### Test 61 Shapiro-Wilk Test
+
+Question the test adrreses:
+
+**Is the sample from a normal distribution?**
+
+To use this test:
+
+-   check for normality
+
+-   suitable for wide range of sample sizes
+
+$H_0$:This data is normally distributed
+
+We can use the built-in `iris` dataset to test whether the `Sepal.Length` for one of the species `setosa` is normally distibuted.
+
+```{r test 61, message=FALSE, warning=FALSE}
+setosa_sepal_length <- iris$Sepal.Length[iris$Species == "setosa"]
+
+shapiro.test(setosa_sepal_length)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the length of sepal of setosa is normally distributed.
+
+### Test 62 Kolmogorov-Smirnov Test of Normality
+
+Question the test adrreses:
+
+**Is the sample from a normal distribution?**
+
+To use this test:
+
+-   comparing the cumulative distribution function with the perfect distribution
+
+-   very general test to compare data to any theoretical distribution
+
+$H_0$:This data is normally distributed
+
+We will use this to compare with normal distribution "pnorm".
+
+```{r test 62, message=FALSE, warning=FALSE}
+ks.test(setosa_sepal_length, "pnorm", mean=mean(setosa_sepal_length), sd=sd(setosa_sepal_length))
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the length of sepal of setosa is normally distributed.
+
+|     |
+|-----|
+|     |
+
+Question the test adrreses:
+
+**Is the sample from a normal distribution?**
+
+To use this test:
+
+-   "goodness-of-fit" test for skewness (0) and kurtosis (3)
+
+We will do this again on the `iris` dataset and we also need `tseries` package.
+
+```{r test 63, message=FALSE, warning=FALSE}
+if (!require("tseries")){
+  install.packages("tseries")
+  library(tseries)
+}
+jarque.bera.test(setosa_sepal_length)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the data is normally distributed.
+
+### Test 64-Test 68
+
+-   **Test 64 D'Agostino**: A combined test for both skewness and kurtosis. It's very similar to the Jarque-Bera Test
+
+-   **Test 65 Anderson-Darling**: A modification of the K-S test which is more sensitive to deviations in the tails of the distribution
+
+-   **Test 66 Cramer-von Mises**: Another modification of the K-S test
+
+-   **Test 67 Lilliefors**: A specific correction of the K-S test when you have to estimate the mean and standard deviation from your sample
+
+-   **Test 68 Shapiro-Francis**: A simplified version of the Shapiro-Wilk test for large sample sizes.
+
+```{r test 64-68, message=FALSE, warning=FALSE}
+if (!require("nortest")){
+  install.packages("nortest")
+  library(nortest)
+}
+
+ad.test(setosa_sepal_length)
+
+cvm.test(setosa_sepal_length)
+
+lillie.test(setosa_sepal_length)
+
+sf.test(setosa_sepal_length)
+```
+
+According to the results, all p-values are larger than the critical value. Therefore, we can not reject the null hypothesis that our data is normally distributed. However, Lilliefors test gives a interesting observation that our data might have a very slightly deviation from a perfect normal distribution that the other tests did not emphasise as much.
+
+### Test 69 Maradia's Test of Multivariate Nornality
+
+Question the test adrreses:
+
+**Is the sample of k factors drawn from the multivariate normal distribution?**
+
+To use this test:
+
+-   check a whole set of variables together follows a multivariate normal distribution
+
+We will test the four measurements of the seotsa species are multivariate normal. We will use `psych` package.
+
+```{r test 69, message=FALSE, warning=FALSE}
+if (!require("psych")){
+  install.packages("psych")
+  library(psych)
+}
+
+setosa_measurements <- iris %>% 
+  filter(Species == "setosa") %>%
+  dplyr::select(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) 
+
+mardia(setosa_measurements)
+```
+
+According to the result, we can find that all p-values are greater than the critical value. Therefore, we can not reject the null hypothesis that our measurements of setosa are multivariate normal.
+
+## Goodness of Fit (Test 70-74)
+
+### Test 70 -71 K-S Goodness of Fit & Anderson-Darling Goodness of Fit
+
+These are the tests that we are familiar with in [Test 62 Kolmogorov-Smirnov Test of Normality] and [Test 64-Test 68]. In test 62, we will the "pnorm" to test normality. Here, we can use the rest of parameters to test different distributions.
+
+|              |                |              |                |
+|--------------|----------------|--------------|----------------|
+| Distribution | R Code for CDF | Distribution | R Code for CDF |
+| Beta         | `"pbeta"`      | Normal       | `"pnorm"`      |
+| Binomial     | `"pbinom"`     | Poisson      | `"ppois"`      |
+| Cauchy       | `"pcauchy"`    | Student's t  | `"pt"`         |
+| Chi-squared  | `"pchisq"`     | Uniform      | `"punif"`      |
+| Exponential  | `"pexp"`       | Weibull      | `"pweibull"`   |
+| F            | `"pf"`         | Wilcoxon     | `"pwilcox"`    |
+| Gamma        | `"pgamma"`     | Logistic     | `"plogis"`     |
+| Lognormal    | `"plnorm"`     |              |                |
+
+### Test 72 Two sample K-S Test
+
+Question the test adrreses:
+
+**Do two independent random samples come from the same probability distribution?**
+
+To use this test:
+
+-   two random samples
+
+We can use the iris dataset to see whether the `sepal.length` of `setosa` and `petal.width` of `versicolor` are from the same distribution.
+
+```{r test 72, message=FALSE, warning=FALSE}
+setosa_sepal_length <- iris$Sepal.Length[iris$Species == "setosa"]
+
+versicolor_petal_width <- iris$Petal.Width[iris$Species == "versicolor"]
+
+ks.test(setosa_sepal_length, versicolor_petal_width, alternative = "two.sided")
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that these two sample data are from the same distribution.
+
+```{r visaulisation of test 72, message=FALSE, warning=FALSE}
+test_72 <- tibble(setosa_sepal_length, versicolor_petal_width)
+
+ggplot(data = test_72) +
+  geom_histogram(aes(x = setosa_sepal_length, y =..density..), bins = 10, fill = "skyblue", color = "black" )
+
+ggplot(data = test_72) +
+  geom_histogram(aes(x = versicolor_petal_width, y =..density..), bins =10, fill = "pink", color = "black")
+```
+
+### Test 73 Anderson-Darling Multiple Sample
+
+This test extends the A-D test into multiple samples. It checks various samples from the same distribution. Similarly, we can continue from test 72 to test 73.
+
+```{r test 73, message=FALSE, warning=FALSE}
+if (!require("kSamples")){
+  install.packages("kSamples")
+  library(kSamples)
+}
+
+kSamples::ad.test(setosa_sepal_length, versicolor_petal_width)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that all samples come from a common population.
+
+### Test 74 Brunner-Munzel Generalized Wilcoxon Test
+
+Question the test adrreses:
+
+**Are the scores on some ordinally scaled variable larger in one population than in another?**
+
+To use this test:
+
+-   variances can not be assumed to be equal
+
+-   distribution is non-symmetric
+
+-   transformation of the data when small sample sizes
+
+We will use the example from the book. We have two groups of football fans scoring the football game ending 0-0.
+
+```{r test 74 data preparation, message=FALSE, warning=FALSE}
+fan1 <- c(2, 2, 4, 1, 1, 4, 1, 3, 1, 5, 2, 4, 1, 1)
+fan2 <- c(3, 3, 4, 3, 1, 2, 3, 3, 1, 5, 4)
+
+brunner.munzel.test(fan1, fan2, alternative = "two.sided", alpha = 0.05)
+```
+
+According to the result, the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis.
+
+## Detecting Outliers (Test 75-78)
+
+### Test 75 Dixon's Q Test
+
+Question the test addresses:
+
+**Do sample data contain an outlier?**
+
+To use this test:
+
+-   usually small sample (\<30)
+
+We will use the example from the book. We will check the smallest value is an outlier.
+
+```{r test 75 data preparation, message=FALSE, warning=FALSE}
+if (!require("outliers")){
+  install.packages("outliers")
+  library(outliers)
+}
+
+sample_data <- c(0.189, 0.167, 0.187, 0.183, 0.186, 0.182, 0.181, 0.184, 0.177)
+
+plot(sample_data)
+```
+
+```{r test 75}
+dixon.test(sample_data)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the smallest value is not an outlier.
+
+### Test 76 Chi-Squared Test for Outliers
+
+Question the test addresses:
+
+**Do my sample data contain an outlier?**
+
+To use this test:
+
+-   the true population (which is rare)
+
+We will use the example on the book.
+
+```{r test 76 data preparation, message=FALSE, warning=FALSE}
+dependent.variable=c(3083,3140,3218,3239,3295,3374,3475,3569,3597,3725)
+independent.variable=c(75,78,80,82,84,88,93,97,65,104)
+```
+
+```{r test 76, message=FALSE, warning=FALSE}
+regression.model <- lm(dependent.variable ~ independent.variable)
+residual <- rstudent(regression.model)
+chisq.out.test(residual, variance = 1)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis and find the highest value is an outlier.
+
+### Test 77 Bonferroni Outlier Test
+
+Question the test addresses:
+
+**Do my sample data contain an outlier?**
+
+To use this test:
+
+-   linear or multiple regression model
+
+We will use the built-in cars dataset and test the linear model between distance and speed. We also need the `car` packages
+
+```{r test 77, message=FALSE, warning=FALSE}
+if (!require("car")){
+  install.packages("car")
+  library(car)
+}
+car_model <- lm(dist ~ speed, data = cars)
+outlierTest(car_model)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that there is no outlier in the regression model.
+
+### Test 78 Grubbs' Test
+
+To use this test:
+
+-   data are assumed to be normally distributed
+
+-   tested data are the minimum and maximum sample values
+
+We can use the example from the book. Type can take from 10, 11, or 20. 10 is for one outlier and 11 is for two outliers on opposite tails, 20 is for two outliers in one tail.
+
+```{r test 78, message=FALSE, warning=FALSE}
+sample<-c(0.189,0.167,0.187,0.183,0.186,0.182,0.181,0.184,0.177)
+
+grubbs.test(sample, type = 10, opposite = FALSE, two.sided = TRUE)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no outlier in the sample data.
+
+## Regression Diagnostics (Test 79-84)
+
+### Test 79 Goldfeld-Quandt Test For heteroscedasticity
+
+Question the test addresses:
+
+**Are the residuals in a linear regression heteroscedastic?**
+
+To use this test:
+
+-   linear or multiple regression model
+
+-   test estimated variance of the regression residuals are dependent on the values of the independent variables
+
+We will continue to use our linear model between distance and speed.
+
+```{r test 79, message=FALSE, warning=FALSE}
+gqtest(car_model)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that our model is homoscedasticity.
+
+### Test 80 Breusch-Pagan Test for Heteroscedasticity
+
+Question the test addresses:
+
+**Are the residuals in a linear regression heteroscedastic?**
+
+This is most common heteroscedasticity test in real-world usage.
+
+```{r test 80, message=FALSE, warning=FALSE}
+bptest(car_model)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis.
+
+### Test 81 Harrison-Mccabe Test For Heteroskedasticity
+
+```{r test 81, message=FALSE, warning=FALSE}
+hmctest(car_model)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis.
+
+### Test 82 Harvey-Collier Test
+
+Question the test addresses:
+
+**Is the regression model correctly specified as linear?**
+
+To use this test:
+
+-   to identify functional misspecification in a regression model
+
+-   a t test of the recursive residuals
+
+```{r test 82, message=FALSE, warning=FALSE}
+harvtest(speed ~ dist, data = cars)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we reject the null hypothesis that this regression model is linear.
+
+```{r visualisation of test 82}
+ggplot(data = cars, aes(x= dist, y = speed)) +
+  geom_smooth()
+```
+
+### Test 83 Ramsey RESET Test
+
+```{r tesst 83, message=FALSE, warning=FALSE}
+resettest(car_model)
+```
+
+According to the result, we can find that p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that this model is a linear model.
+
+```{r visualisation of test 83, message=FALSE, warning=FALSE}
+ggplot(data = cars, aes(y = dist, x = speed)) +
+  geom_smooth()
+```
+
+The Harvey-Collier test is sensitive to the **order of the data**. It works by calculating "recursive residuals" by adding one data point at a time. For this to work correctly, the data must be ordered by the predictor variable (`x`).
+
+When you used the formula `dist ~ speed`, R automatically handled this ordering. When you reversed it to `speed ~ dist`, the ordering was incorrect, which produced the strange result.
+
+## Time Series Unit Root Tests (Test 85-91)
+
+In simple terms, a time series with a **unit root** is **non-stationary**. This means its statistical properties (like its mean and variance) are not constant over time. It often wanders unpredictably up or down and is sometimes called a "random walk."
+
+### Test 85 Augmented Dickey-Fuller (ADF) Test
+
+Question the test addresses:
+
+**Does the data contain a unit root?**
+
+We will use the data from Nile river.
+
+```{r test 85, message=FALSE, warning=FALSE}
+library(tseries)
+adf.test(Nile)
+```
+
+According to the result, we can find that the p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that Nile river data is non-stationary.
+
+### Test 86 Phillips-Perron Test
+
+```{r test 86, message=FALSE, warning=FALSE}
+pp.test(Nile)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that Nile river data is non-stationary.
+
+This happens because they use different methods to handle the complex serial correlation in the time series. The ADF test adds lagged terms to the regression, while the PP test makes a non-parametric correction. Neither method is universally "better," and when the results are borderline like this (0.064 is very close to 0.05), it's common for them to disagree. An experienced analyst seeing this would conclude that the evidence is ambiguous and might investigate further.
+
+### Test 87 Phillips-Ouliaris Test
+
+Question the test addresses:
+
+**Is the sample of multivariate observations cointegrated?**
+
+To use this test:
+
+-   linear regression residual series are weakly dependent and heterogeneously distributed
+
+We will use the `EuStockMarkets` dataset.
+
+```{r test 87, message=FALSE, warning=FALSE}
+po.test(diff(log(EuStockMarkets),1), demean = TRUE)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no cointegration in the EuStockMarkets dataset.
+
+### Test 88 Kwiatkowski-Phillips-Schmidt-Shin Test
+
+Question the test addresses:
+
+**Is a sample of timeseries observations stationary around a deterministic trend?**
+
+This test flips the null hypothesis in test 85 and test 86. The null hypothesis is that the timeseries is stationary.
+
+```{r test 88, message=FALSE, warning=FALSE}
+kpss.test(Nile, null = "Level")
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that Nile river data is stationary.
+
+### Test 89 Elliott, Rothenberg & Stock Test
+
+Question the test addresses:
+
+**Does the data contain a unit root?**
+
+To use this test:
+
+-   efficient unit root test
+
+-   higher power than [Test 85 Augmented Dickey-Fuller (ADF) Test] and [Test 86 Phillips-Perron Test]
+
+We can use this test to figure out the opposite result between test 85 and test 86 in Nile river. We also need the `urca` package. Type can be DF-GLS or P-test
+
+```{r test 89, message=FALSE, warning=FALSE}
+if (!require("urca")){
+  install.packages("urca")
+  library(urca)
+}
+summary(ur.ers(Nile, type = "DF-GLS", model = "trend", lag.max=4))
+```
+
+According to the result, we can find that we can reject the null hypothesis at 5% significance level but can not reject the null hypothesis at 1% significance level. Therefore, the Nile dataset is stationary at the 5% significance level.
+
+### Test 90 Schmidt-Phillips Test
+
+We will use the `sunspots` dataset, which contained the monthly mean relative sunspot numbers from 1749 to 1983. We still need the package `urca`.
+
+```{r Test 90, message=FALSE, warning=FALSE}
+summary(ur.sp(sunspots, type=
+"tau"
+, pol.deg=1, signif=0.05))
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is a unit root in the timeseries.
+
+### Test 91 Zivot and Andrews Test
+
+Question the test addresses:
+
+**Does the data with an expected structural break contain a unit root?**
+
+```{r Test 91, message=FALSE, warning=FALSE}
+summary(ur.za(sunspots, model = "both", lag = 3))
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no expected structural break.
+
+## Survival Analysis (Test 92-94)
+
+### Test 92 Grambsch-Therneau Test of Proportionality
+
+Question the test addresses:
+
+**Is the assumption of proportional hazards for a Cox regression model fit valid?**
+
+The "proportional hazards" assumption means that the relative risk between groups is constant over time. For example, if we're comparing a treatment group to a control group, the assumption means that if the treatment group is half as likely to have the "event" (e.g., relapse) in the first month, they are also half as likely in the second month, the third month, and so on.
+
+We will use the `survival` package and the `lung` dataset in this package.
+
+```{r test 92, message=FALSE, warning=FALSE}
+if (!require("survival")){
+  install.packages("survival")
+  library(survival)
+}
+
+cox_model <- coxph(Surv(time, status) ~ sex, data = lung)
+
+cox.zph(cox_model)
+```
+
+According to the result, we can find that the global p-value is larger than the critical value. Therefore, we can not reject the null hypothesis that the proportional hazards assumption is valid.
+
+### Test 93 Mantel-Haenszel Log-Rank Test
+
+Question the test addresses:
+
+**Are there statistically significant differences between two or more survival curves?**
+
+It works by comparing the observed number of events (e.g., deaths or relapses) in each group at each time point to the number that would be expected if there were no difference between the groups.
+
+```{r test 93, message=FALSE, warning=FALSE}
+survdiff(Surv(time, status) ~ sex, data = lung)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no difference between the survival curves of the groups.
+
+### Test 94 Peto and Peto Test
+
+Question the test addresses:
+
+**Are there statistically significant differences between two or more survival curves?**
+
+To use this test:
+
+-   Alternative way to the log-rank test
+
+-   gives more weight to the events happen early in the timeline
+
+-   short-term survival differences between groups
+
+Setting `rho = 1` tells the function to perform a Peto and Peto style test.
+
+```{r test 94, message=FALSE, warning=FALSE}
+survdiff(Surv(time, status) ~ sex, data = lung, rho = 1)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no difference between the survival curves of the groups, especially for the early results.
+
+## Circular Data (Test 95-100)
+
+Circular data represents directions (like compass headings), times of day, or seasons of the year.
+
+These tests answer a similar question:
+
+**Is the sample equally (uniformly) distributed with respect to angle?**
+
+$H_0$: The data is uniformly distributed around the circle with no preferred direction.
+
+### Test 95 Kuiper's Test of Uniformity
+
+We'll use the `circular` package, which is the standard for this type of analysis. It contains a dataset called `turtles`, which records the direction from which 10 sea turtles approached their nesting island.
+
+```{r test 95, message=FALSE, warning=FALSE}
+if (!require("circular")){
+  install.packages("circular")
+  library(circular)
+}
+
+turtles_circular <- circular(turtles, units = "degrees", template = "geographics")
+kuiper.test(turtles_circular)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no preferred nesting island for sea turtles.
+
+### Test 96 Rao's Spacing Test of Uniformity
+
+To use this test:
+
+-   good all-purpose test for circular data
+
+-   It works by looking at the "spacings" or the arc lengths between each successive data point around the circle.
+
+We can use the same circular object we created before.
+
+```{r test 96, message=FALSE, warning=FALSE}
+rao.spacing.test(turtles_circular)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no preferred nesting island for sea turtles.
+
+### Test 97 Rayleigh Test of Uniformity
+
+To use this test:
+
+-   calculating the mean vector of all directional data points
+
+-   if there is a particular direction, the mean vector can point in that direction
+
+```{r test 97, message=FALSE, warning=FALSE}
+rayleigh.test(turtles_circular)
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no preferred nesting island for sea turtles.
+
+Now we can see the mean vector through this way:
+
+```{r test 97 mean vector, message=FALSE, warning=FALSE}
+mean.circular(turtles_circular)
+rho.circular(turtles_circular)
+```
+
+According to the result, the average direction the turtles are coming from is about 16 degrees East of South with high consistent and clustered behaviours ( $\rho=0.83$ ).
+
+### Test 98 Watson's Goodness of Fit Test
+
+Question the test addresses:
+
+**Is the sample uniformly distributed or from the Von Mises distribution?**
+
+The **Von Mises** distribution is often called the "normal distribution for circular data." It describes data that is clustered around a single mean direction.
+
+```{r test 98, message=FALSE, warning=FALSE}
+watson.test(turtles_circular, dist = "uniform")
+```
+
+According to the result, we can find that the p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that there is no preferred nesting island for sea turtles.
+
+A standard Von Mises Distribution looks like:
+
+```{r Von Mises Distribution, message=FALSE, warning=FALSE}
+set.seed(123)
+spread_out_data <- rvonmises(n = 100, mu = circular(90, units = "degrees"), kappa = 1)
+plot(spread_out_data, main = "Von Mises Distribution with Low Concentration (kappa = 1)")
+concentrated_data <- rvonmises(n = 100, mu = circular(90, units = "degrees"), kappa = 10)
+plot(concentrated_data, main = "Von Mises Distribution with High Concentration (kappa = 10)")
+```
+
+**Kappa** (kappa) is the key parameter that controls the **concentration** or spread of a Von Mises distribution.
+
+### Test 99 Watson's Two-Sample Test of Homogeneity
+
+Question the test addresses:
+
+**Do two independent samples of circular data come from the same distribution?**
+
+This is the circular data version of [Test 72 Two sample K-S Test].
+
+We will create two samples with different levels of concentration.
+
+```{r test 99 data preparation, message=TRUE, warning=FALSE}
+set.seed(456)
+
+group1_directions<- rvonmises(n = 30, mu = circular(90, units = "degrees"), kappa = 8)
+
+group2_directions<- rvonmises(n = 30, mu = circular(180, units = "degrees"), kappa = 2)
+```
+
+```{r test 99, message=FALSE, warning=FALSE}
+watson.two.test(group1_directions, group2_directions)
+```
+
+According to the result, we can find that p-value is smaller than the critical value. Therefore, we can reject the null hypothesis that these two groups are drawn from the same distribution.
+
+### Test 100 Rao's Test for Homogeneity
+
+To use this test:
+
+-   compare the mean direction and dispersion
+
+-   two or more samples
+
+We will use our same samples created in test 99 to see whether they have the same mean direction and dispersion.
+
+```{r test 100, message=FALSE, warning=FALSE}
+rao.test(group1_directions, group2_directions)
+```
+
+According to the result, we can find that the p-value of the mean vector is larger than the critical value but the p-value of the dispersion is smaller than the critical value. Therefore, we can not reject the null hypothesis that our two groups of samples have the same mean direction but we can reject the null hypothesis that our two groups of samples have the same dispersion.
+
+Now, we have a look on the results.
+
+```{r visaulisation test 100, message=TRUE, warning=TRUE}
+plot_df <- data.frame(
+  direction = c(as.numeric(group1_directions), as.numeric(group2_directions)),
+  group = c(rep("Group 1 (Concentrated)", 30), rep("Group 2 (Spread Out)", 30))
+)
+
+ggplot(plot_df, aes(x = direction, fill = group)) +
+  geom_histogram(breaks = seq(0, 360, by = 20), color = "black") +
+  coord_polar() + # This is the magic function that makes it circular
+  facet_wrap(~ group) + # This creates two separate plots for easy comparison
+  labs(title = "Comparison of Two Circular Distributions", x = "", y = "") +
   theme_minimal()
 ```
